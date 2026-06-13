@@ -100,6 +100,7 @@
     <button class="btn coral" id="go">Sic the goose on me →</button>
     <button class="btn" id="installBtn" style="display:none;margin-top:10px;background:var(--ink);color:var(--bg)">📲 Install Goose</button>
     <div id="installHint" style="display:none;margin-top:10px;background:var(--card);border-radius:14px;padding:12px;font-size:13px;line-height:1.5;color:var(--ink);box-shadow:var(--shadow)"></div>
+    <button class="btn" id="pushBtn" style="margin-top:10px;background:var(--card);color:var(--coral);box-shadow:var(--shadow)">🔔 Let Goose hunt you down</button>
     <button class="btn" id="calConnect" style="margin-top:10px;background:var(--card);color:var(--amber-d);box-shadow:var(--shadow)">🗓️ Connect Google Calendar</button>
     <p id="calStatus" style="margin:8px 2px 0;font-size:13px;font-weight:700;color:var(--muted);line-height:1.45;text-align:center"></p>
   </section>
@@ -357,13 +358,48 @@ if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').cat
   });
 })();
 
+/* ---- Web Push: let Goose ping your phone WHILE you're off in another app ---- */
+const VAPID_PUBLIC='BIGaKxtFiujN9YYaPIwPew-xsTKQdhA0aHslNgXwkXDSgh4rJ32kB7PL8YjS1JIW3DcOFctMzcysYEG4SjxkRiM'; // PUBLIC VAPID key — safe to commit (the PRIVATE key lives only in a Vercel env var)
+const pushSupported='serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+let pushSub=null;
+function urlB64ToUint8(s){const pad='='.repeat((4-s.length%4)%4);const b=(s+pad).replace(/-/g,'+').replace(/_/g,'/');const raw=atob(b);const out=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);return out;}
+async function subscribePush(){const reg=await navigator.serviceWorker.ready;return await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64ToUint8(VAPID_PUBLIC)});}
+async function enablePush(){
+  if(!pushSupported||!VAPID_PUBLIC) return false;
+  let perm=Notification.permission;
+  if(perm==='default') perm=await Notification.requestPermission();
+  if(perm!=='granted') return false;
+  try{ pushSub=await subscribePush(); try{localStorage.setItem('goose-push','1');}catch(e){} return !!pushSub; }catch(e){ return false; }
+}
+// fired when you bail mid-task → server pushes you a few seconds later, while you're still in the other app
+function sendAwayPush(){
+  if(!pushSub) return;
+  const t=(tasks.find(x=>!x.done)||{}).text||'';
+  try{ fetch('/api/push',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({subscription:pushSub,name,task:t})}); }catch(e){}
+}
+// silently re-acquire a subscription if you already granted permission in a past session
+(async()=>{ if(pushSupported&&VAPID_PUBLIC&&Notification.permission==='granted'){ try{ pushSub=await subscribePush(); }catch(e){} } })();
+// opt-in button
+(function(){
+  const pb=$('pushBtn'); if(!pb) return;
+  if(!pushSupported){ pb.style.display='none'; return; }
+  if(Notification.permission==='granted') pb.textContent='🔔 Goose can hunt you ✓';
+  pb.addEventListener('click',async()=>{
+    pb.textContent='🔔 Asking…';
+    const ok=await enablePush();
+    pb.textContent = ok ? '🔔 Goose can hunt you ✓'
+      : (isIOS && !standalone ? '🔔 Add Goose to your Home Screen first' : '🔔 Blocked — enable notifications in settings');
+  });
+})();
+
 /* ---- Focus watch: catch them bailing out of Goose mid-task ---- */
 const AWAY_TROLL_MS=12000; // gone longer than this (ms) → goose calls you out on return. Low for demos; bump up for real use.
 let hiddenAt=null;
 function chatActive(){ return !$('s-chat').classList.contains('hide') && tasks.some(t=>!t.done); }
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){
-    hiddenAt = chatActive() ? Date.now() : null;          // only start the clock if you're mid-session with work left
+    if(chatActive()){ hiddenAt=Date.now(); sendAwayPush(); } // start the clock + ping the phone while you're gone
+    else hiddenAt=null;
   } else if(hiddenAt){
     const awayMs=Date.now()-hiddenAt; hiddenAt=null;       // Date.now() = true wall-clock, accurate even if the OS paused our JS
     if(awayMs>=AWAY_TROLL_MS && chatActive()){

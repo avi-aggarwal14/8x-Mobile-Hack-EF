@@ -54,7 +54,7 @@ There's **one open track** and a fixed rubric (① Originality ② UI/UX ③ Exe
 - [x] **Goose persona prompt** (Claude) — ✅ wired via server-side `/api/nag` (Haiku 4.5); generates intro/nags/done/ghost/all-done in character; canned strings now the offline fallback. *(Needs `ANTHROPIC_API_KEY` set in Vercel.)*
 - [x] Task input — name + top-3 tasks *(text only; voice = stretch)*
 - [~] Nudge delivery — **Calendar schedules → chat app (Telegram/WhatsApp) delivers**; ✅ in-app goose chat works as the demo fallback
-- [x] **Off-task callout (focus-watch)** — Page Visibility detects leaving Goose mid-task → Claude roast on return (`offtask` kind); proactive-character, no new permissions. ⬜ Web Push (ping you *while* away) deferred.
+- [x] **Off-task callout (focus-watch + push)** — Page Visibility detects leaving Goose mid-task → Claude roast on return (`offtask`) **and a real push notification to your phone while you're away** (`/api/push`, Web Push + VAPID). ⚠️ Needs `VAPID_*` env vars in Vercel; iOS needs the installed PWA.
 - [x] Streak + done/ghost states with Goose reactions *(+ XP, levels, confetti)*
 - [x] Shareable Goose card (html2canvas + Web Share API) — ✅ now prints `goose-lockin.vercel.app`
 - [~] Waitlist — ✅ email → Google Apps Script → Google Sheet; 🟡 phone capture in progress; ⬜ live counter + QR

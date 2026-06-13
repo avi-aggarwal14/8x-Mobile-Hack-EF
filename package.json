@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "name": "goose-8x",
+  "description": "Goose — serverless functions for the static PWA (Vercel /api). No build step; deps are only for the functions.",
+  "dependencies": {
+    "web-push": "^3.6.0"
+  }
+}
