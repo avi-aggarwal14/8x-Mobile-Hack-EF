@@ -284,6 +284,18 @@ const NAG = {
 const pick = a => a[Math.floor(Math.random()*a.length)];
 const $ = id => document.getElementById(id);
 let tasks=[], xp=0, streak=0, nagLevel={}, name="";
+// Pull just the NAME out of whatever the user typed ("yo my name's avi" -> "Avi").
+function parseName(raw){
+  let s=(raw||'').trim();
+  const m=s.match(/(?:my name'?s?|my name is|i'?m|i am|call me|it'?s|this is)\s+(.+)/i);
+  if(m) s=m[1];
+  s=s.replace(/^(?:yo|hey+|hi+|hello|sup|well|um+|uh+|ok(?:ay)?|so)\b[\s,]*/i,'').trim();
+  s=s.replace(/[^\p{L}\p{M}'’\- ]/gu,'').trim();
+  const words=s.split(/\s+/).filter(Boolean).filter(w=>!/^(here|now|btw|lol|thanks|please|ok|okay)$/i.test(w)).slice(0,2);
+  s=words.join(' ');
+  const out = s || ((raw||'').replace(/[^\p{L}\p{M}'’\- ]/gu,'').trim().split(/\s+/)[0] || 'you');
+  return out.replace(/\b\p{L}/gu,c=>c.toUpperCase()).slice(0,40);
+}
 
 function show(id){['s-chat','s-card'].forEach(s=>$(s).classList.toggle('hide',s!==id));}
 function addBub(text, me, replay){
@@ -555,8 +567,8 @@ $('composer').addEventListener('submit', e=>{
   $('chatInput').value='';
   addBub(val, true);
   if(phase==='name'){
-    name=val; phase='tasks'; saveState(); paintMode();
-    gooseSayAI('named', {}, name+". Noted. Connect your calendar so I can see what you're dodging — or stay in Task mode and tell me what to hound you on. 🪿");
+    name=parseName(val); phase='tasks'; saveState(); paintMode();
+    gooseSay(name+". Noted. Connect your calendar so I can see what you're dodging — or stay in Task mode and tell me what to hound you on. 🪿");
   } else if(chatMode==='chat'){
     pushHistory('chatted: "'+val+'"');
     gooseSayAI('chat', {message:val}, pick(CHAT_FALLBACK));
