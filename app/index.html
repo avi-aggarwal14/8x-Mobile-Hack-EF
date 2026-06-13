@@ -8,17 +8,25 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <link rel="manifest" href="/manifest.json" />
+<link rel="icon" href="/icon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="/icon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>(function(){try{var t=localStorage.getItem('goose-theme');if(!t)t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <style>
   :root{
     --bg:#FBF7EF; --card:#FFFFFF; --ink:#2A2A28; --muted:#7A786F;
     --amber:#F2A03D; --amber-d:#C0721F; --coral:#E2603C; --green:#2FA86B; --disc:#FDEBCF;
     --bubble:#EFEADE; --shadow:0 8px 0 rgba(42,42,40,.10);
   }
+  html[data-theme="dark"]{
+    --bg:#181613; --card:#23201B; --ink:#F4F0E7; --muted:#A8A296;
+    --amber:#F4A84A; --amber-d:#F4A84A; --coral:#E8714E; --green:#46B97F; --disc:#2E2A22;
+    --bubble:#2A2722; --shadow:0 8px 0 rgba(0,0,0,.30);
+  }
+  .theme-toggle{position:absolute;top:14px;right:14px;z-index:6;background:none;border:none;font-size:22px;line-height:1;padding:4px;cursor:pointer;color:var(--ink)}
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%}
   body{background:var(--bg); color:var(--ink); font-family:Nunito,system-ui,sans-serif; overflow:hidden}
@@ -79,6 +87,7 @@
 
   <!-- START -->
   <section class="screen start" id="s-start">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
     <svg class="goose-hero" viewBox="0 0 220 190" aria-label="Goose"><circle cx="110" cy="98" r="80" fill="#FDEBCF"/><path d="M40 96 C55 72 78 64 100 66 C120 50 138 40 152 40 Q175 40 196 52 Q180 58 166 60 C168 78 150 92 140 104 C134 120 120 140 96 148 C70 154 50 140 44 120 C42 110 40 102 40 96 Z" fill="#fff" stroke="#57564F" stroke-width="2.5" stroke-linejoin="round"/><path d="M88 92 C104 100 116 116 106 132" fill="none" stroke="#57564F" stroke-width="2" stroke-linecap="round"/><path d="M182 46 L201 52 L182 59 Z" fill="#F2A03D" stroke="#C0721F" stroke-width="1"/><circle cx="158" cy="50" r="3.6" fill="#2A2A28"/><path d="M149 41 L163 44" stroke="#2A2A28" stroke-width="2" stroke-linecap="round"/></svg>
     <h1>Goose</h1>
     <p class="sub">Tell me what you're avoiding. I'll handle the rest. 🪿</p>
@@ -88,7 +97,7 @@
     <div class="field"><label>task 3</label><input class="inp t-in" placeholder="Go to the gym" /></div>
     <div style="height:8px"></div>
     <button class="btn coral" id="go">Sic the goose on me →</button>
-    <button class="btn" id="installBtn" style="display:none;margin-top:10px;background:#2A2A28">📲 Install Goose</button>
+    <button class="btn" id="installBtn" style="display:none;margin-top:10px;background:var(--ink);color:var(--bg)">📲 Install Goose</button>
     <div id="installHint" style="display:none;margin-top:10px;background:var(--card);border-radius:14px;padding:12px;font-size:13px;line-height:1.5;color:var(--ink);box-shadow:var(--shadow)"></div>
   </section>
 
@@ -247,6 +256,19 @@ if(installBtn && !standalone){
   });
 }
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
+
+(function(){
+  const tt=document.getElementById('themeToggle');
+  const cur=()=>document.documentElement.getAttribute('data-theme');
+  const setIcon=()=>{ if(tt) tt.textContent = cur()==='dark' ? '☀️' : '🌙'; };
+  setIcon();
+  if(tt) tt.addEventListener('click',()=>{
+    const n = cur()==='dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', n);
+    try{ localStorage.setItem('goose-theme', n); }catch(e){}
+    setIcon();
+  });
+})();
 </script>
 </body>
 </html>

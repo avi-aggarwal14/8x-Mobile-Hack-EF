@@ -14,7 +14,28 @@
 
 - **Large tasks** — anything you estimate at **≥10k tokens** of work — require **at least 5 clarifying questions up front** (more if you need them) *before* you start.
 - **Don't be afraid to come back for more input** at any point. Over-asking is cheap; rework is expensive.
+- **Log every change in the docs — immediately.** Whenever you do *anything* (ship code, deploy, set up a service, change config, make a decision), record it in the `.md` file it's **most relevant to** *before you move on*: build/status → `CLAUDE.md` §0 + the `IDEAS.md` checklist; decisions, links & context → `MEMORY.md` (dated decisions-log entry). The three docs must always mirror reality — **no silent changes.**
 - This **overrides** any "bias to action" / "ship the thinnest thing" guidance elsewhere in this doc. Doing the *wrong* thing fast is worse than a 2-minute question.
+
+---
+
+## 0. STATUS — what's live right now (June 13, mid-build)
+
+**🟢 Deployed:** **https://goose-lockin.vercel.app** (Vercel project `goose-8x`) · **Repo:** github.com/avi-aggarwal14/8x-Mobile-Hack-EF
+
+**Shipped & live:**
+- **Landing page** (`/`) — email waitlist → **Google Apps Script → Google Sheet** (collecting signups now); rotating nag samples; PWA install.
+- **Interactive app** (`/app`) — name + top-3 tasks → a goose "chat" that nags with escalating intensity, done/ghost/skip, XP·levels·streak·confetti, and a **shareable Goose card** (html2canvas + Web Share). ⚠️ Nags are **canned strings — the Claude API is NOT wired in yet.**
+- **PWA** — manifest, service worker, icon, install prompts, **browser-tab favicon** (SVG `icon.svg`, on both `/` and `/app`).
+- *(As-built note: vanilla HTML/JS static PWA, not the Next.js in §5 — fine for the window.)*
+
+**🟡 In progress:**
+- **Google Calendar API (two-way):** reads your real calendar/deadlines to nag you about them, **and** writes new tasks/reminders (with deadlines) back to your calendar to nag about later. = Goose's scheduling + awareness brain. — ✅ **client-side connector built + deployed** (GIS token model, read+write `calendar.events`, no backend/secret): `gcal.js` + `config.js` + a `/calendar.html` test page. **Blocked on:** Avi creating the OAuth **Client ID** in Google Cloud Console (`CALENDAR_SETUP.md`) → paste into `config.js`, then verify at `goose-lockin.vercel.app/calendar.html`.
+- **Nag delivery model:** **Calendar decides *when* · a chat app (Telegram/WhatsApp) *delivers* the nag.** (The Claude Goose engine + chat delivery is the open build.)
+- **Waitlist → email + phone** (phone capture being added; needed so Goose can actually text you).
+- **Claude API → live, personalized nags** (replacing the canned strings).
+
+**⚠️ Fix:** the share card / OG tags / Vercel project name all say `goose-8x.vercel.app`; the canonical public URL is **goose-lockin.vercel.app**. The share card *is* our growth loop — update the code refs so shares point at the live site.
 
 ---
 
@@ -66,16 +87,16 @@
 ## 5. Stack — speed + zero-install distribution
 - **App:** PWA (Next.js + Tailwind) → **Vercel**. Instant shareable link, installable to home screen, no App Store / no dev licence. Right call given ~4h + "any tools."
 - **AI:** **Claude API** = Goose's nag persona (the magic is the prompt; invest there). Use sponsor AI credits if offered.
-- **Nudges:** **SMS / WhatsApp via Twilio = "Goose texts you"** — zero install, sidesteps iOS push limits. Email fallback (Resend).
+- **Scheduling + nudges:** **Google Calendar API schedules *when*** (reads your real deadlines + writes new task reminders to nag about later) → a **chat app (Telegram/WhatsApp) *delivers*** the nag ("Goose texts you", zero install). In-app goose chat = demo fallback.
 - **Waitlist:** Formspree / Tally (instant) or Supabase. **QR code** for in-room signups.
 - **Alts:** Glide (no-code PWA) if no one's coding; Expo Go only if a track demands true native.
 
 ## 6. Timeline checklist (mapped to the real clock)
 **Pre-kickoff (now → 10:30) — track-independent**
-- [ ] PWA scaffold + Vercel project + live URL
-- [ ] Waitlist landing page live; signup counter started
-- [ ] Goose persona prompt drafted + tested on the Claude API
-- [ ] SMS/WhatsApp nudge plumbing stubbed (Twilio)
+- [x] PWA scaffold + Vercel project + live URL → **goose-lockin.vercel.app**
+- [x] Waitlist landing page live *(email → Google Sheet)*; ⬜ signup counter
+- [ ] Goose persona prompt on the Claude API *(app still uses canned nags)*
+- [~] Nudge plumbing — Calendar schedules → chat app delivers *(in progress)*
 - [ ] QR code generated for the live link
 
 **Kickoff (10:30)** — *single track + rubric (Originality / UI-UX / Execution) already known*
@@ -83,9 +104,9 @@
 - [ ] Lock the **most original** framing/copy for Goose; cut anything that reads as a plain to-do/health app
 
 **Build (10:45 → 14:30)**
-- [ ] Core loop: task input → Goose nag (Claude) → done/ghost + streak
-- [ ] One share artifact (Goose card) + buddy invite
-- [ ] Deploy; test on a real phone via the QR
+- [~] Core loop: task input ✅ → Goose nag *(canned ✅ / Claude ⬜)* → done/ghost + streak ✅
+- [x] Share artifact (Goose card) ✅; ⬜ buddy invite
+- [x] Deployed ✅; ⬜ test on a real phone via the QR
 
 **Submit & polish (15:00)**
 - [ ] Working build submitted at 15:00 (don't let the form be the failure point)

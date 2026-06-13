@@ -53,10 +53,10 @@ Two columns of work:
 4. **Name:** `Goose web`.
 5. **Authorized JavaScript origins** → **+ Add URI** for each of these (origin only — no path, no trailing slash):
    ```
-   https://goose-8x.vercel.app
+   https://goose-lockin.vercel.app
    http://localhost:3000
    ```
-   - The first is your live site (where testers will use it).
+   - The first is your **live public site** (`goose-lockin.vercel.app` — where testers will use it). ⚠️ Use this, **not** `goose-8x.vercel.app` (that alias has Vercel login protection and returns 401). If you ever turn that protection off, add `https://goose-8x.vercel.app` here too.
    - The second is for local testing (see "Testing locally" below). Add the exact port you use.
 6. **Authorized redirect URIs:** leave **blank**. (The browser/popup token flow uses JavaScript origins, not redirect URIs.)
 7. **Create**. A dialog shows your **Client ID** (ends in `.apps.googleusercontent.com`). **Copy it.** Ignore the client secret — we don't use it.
@@ -76,7 +76,7 @@ It looks like:
 
 ## Part E — Verify it works
 
-1. Open **https://goose-8x.vercel.app/calendar.html** on your phone or laptop.
+1. Open **https://goose-lockin.vercel.app/calendar.html** on your phone or laptop.
 2. Tap **🔗 Connect Google Calendar** → a Google popup appears.
 3. Because the app is in Testing, you'll see **"Google hasn't verified this app"** → click **Advanced → Go to Goose (unsafe) → Continue**. (This is normal/expected for an unverified test app; only your test users can get past it.)
 4. Grant the calendar permission.
@@ -101,7 +101,7 @@ Make sure `http://localhost:3000` is in your Authorized JavaScript origins (Part
 
 | Symptom | Fix |
 |---|---|
-| **`Error 400: redirect_uri_mismatch`** or **"origin is not allowed"** | The page's origin isn't in **Authorized JavaScript origins**. It must match exactly — `https` vs `http`, no trailing slash, correct port. You're testing on a Vercel **preview** URL (a long hashed one) instead of `goose-8x.vercel.app` — use the clean production URL. |
+| **`Error 400: redirect_uri_mismatch`** or **"origin is not allowed"** | The page's origin isn't in **Authorized JavaScript origins**. It must match exactly — `https` vs `http`, no trailing slash, correct port. Make sure you're on `https://goose-lockin.vercel.app/calendar.html`, not a long hashed Vercel **preview** URL or the protected `goose-8x.vercel.app`. |
 | **"Google hasn't verified this app"** | Expected in Testing. **Advanced → Go to Goose (unsafe)**. If you *can't* get past it, the account isn't a **test user** — add it in Part B step 4. |
 | **403 / `accessNotConfigured`** | Calendar API isn't enabled (Part A) — or you enabled it on a *different* project than the Client ID. Wait ~1 min after enabling. |
 | **`Error 401: invalid_client`** | Wrong/typo'd Client ID in `config.js`, or it's from a different project. |

@@ -12,7 +12,16 @@
 
 - **Large tasks** — anything you estimate at **≥10k tokens** of work — require **at least 5 clarifying questions up front** (more if you need them) *before* you start.
 - **Don't be afraid to come back for more input** at any point. Over-asking is cheap; rework is expensive.
+- **Log every change in the docs — immediately.** Whenever you do *anything* (ship code, deploy, set up a service, change config, make a decision), record it in the `.md` file it's **most relevant to** *before you move on*: build/status → `CLAUDE.md` §0 + the `IDEAS.md` checklist; decisions, links & context → `MEMORY.md` (dated decisions-log entry). The three docs must always mirror reality — **no silent changes.**
 - This **overrides** any "bias to action" / "ship the thinnest thing" instinct. Doing the *wrong* thing fast is worse than a 2-minute question.
+
+---
+
+## 🟢 Status — live (June 13, mid-build)
+**Deployed:** https://goose-lockin.vercel.app · **Repo:** 8x-Mobile-Hack-EF
+- ✅ Landing + waitlist (email → Google Sheet) · ✅ interactive `/app` (3 tasks → goose chat, done/ghost, streak/XP, shareable card) · ✅ PWA install.
+- 🟡 Building: **Google Calendar API** (reads your real deadlines to nag about + writes new tasks/reminders to nag about later) → schedules the nags; **chat app (Telegram/WhatsApp) delivers** them; **Claude API** for real nags (currently canned strings); **phone capture** on the waitlist.
+- ⚠️ Share card still prints `goose-8x.vercel.app` → update to `goose-lockin.vercel.app`.
 
 ---
 
@@ -39,14 +48,15 @@ There's **one open track** and a fixed rubric (① Originality ② UI/UX ③ Exe
 > Lean *weirder*, not more useful: when in doubt, push the comedy/character, not more task-management features.
 
 ## Build checklist (speed-first)
-- [ ] Next.js **PWA** + Tailwind → Vercel (pre-build now)
-- [ ] **Goose persona prompt** (Claude) — the magic; test before kickoff
-- [ ] Task input (text + voice)
-- [ ] Nudge delivery: **SMS/WhatsApp (Twilio) "Goose texts you"**; in-app fallback for the demo
-- [ ] Streak + done/ghost states with Goose reactions
-- [ ] Shareable Goose card (`html-to-image` + Web Share API)
-- [ ] Waitlist capture + counter; **QR code** for the room
-- [ ] **UI/UX polish pass** — frictionless flow + delightful look (judging criterion ②); lean on `ui-ux-pro-max`
+- [x] **PWA → Vercel** — live at goose-lockin.vercel.app *(as-built: static HTML/JS, not Next.js)*
+- [ ] **Goose persona prompt** (Claude) — the magic; *app currently uses canned nag strings → wire Claude in*
+- [x] Task input — name + top-3 tasks *(text only; voice = stretch)*
+- [~] Nudge delivery — **Calendar schedules → chat app (Telegram/WhatsApp) delivers**; ✅ in-app goose chat works as the demo fallback
+- [x] Streak + done/ghost states with Goose reactions *(+ XP, levels, confetti)*
+- [x] Shareable Goose card (html2canvas + Web Share API) — ⚠️ still prints `goose-8x.vercel.app`, fix to `goose-lockin`
+- [~] Waitlist — ✅ email → Google Apps Script → Google Sheet; 🟡 phone capture in progress; ⬜ live counter + QR
+- [~] **Google Calendar API** — ✅ client-side read+write connector (`gcal.js`) + `/calendar.html` test page built & deployed; **blocked on** Avi's OAuth **Client ID** (see `CALENDAR_SETUP.md`) → then verify + fold into the flow
+- [~] **UI/UX polish pass** — clean Baloo/Nunito UI shipped; keep refining (criterion ②)
 
 ## Demo script (~2–3 min — confirm limit)
 1. **Hook (15s):** "We have no boss. So nothing gets done. Meet your new one."
