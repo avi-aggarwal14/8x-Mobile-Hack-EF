@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Goose — Calendar connection test</title>
+<meta name="theme-color" content="#E8913A" />
+<link rel="apple-touch-icon" href="/icon.svg" />
+<style>
+  :root{
+    --bg:#FBF7EF; --card:#FFFFFF; --ink:#2C2C2A; --muted:#6B6A64;
+    --amber:#E8913A; --amber-dark:#C0721F; --disc:#FAEEDA; --line:rgba(44,44,42,.10);
+    --green:#3BA776; --red:#D2552F;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+    display:flex; justify-content:center; padding:24px 18px 56px;
+  }
+  .wrap{width:100%; max-width:460px}
+  .logo{display:flex; align-items:center; gap:9px; margin-bottom:14px}
+  .logo span{font-size:19px; font-weight:600; letter-spacing:-.01em}
+  h1{font-size:24px; line-height:1.2; font-weight:700; letter-spacing:-.02em; margin:2px 0 6px}
+  .sub{font-size:15.5px; color:var(--muted); margin:0 0 18px}
+
+  .pill{display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:700;
+        padding:6px 12px; border-radius:999px; background:var(--disc); color:var(--amber-dark); margin-bottom:16px}
+  .pill .dot{width:9px;height:9px;border-radius:50%;background:#B9B5AA;flex:none}
+  .pill.ok{background:#E4F4EC; color:#1E7A52} .pill.ok .dot{background:var(--green)}
+  .pill.bad{background:#FBE6DD; color:#A23A18} .pill.bad .dot{background:var(--red)}
+  .pill.busy .dot{background:var(--amber); animation:pulse 1s infinite}
+  @keyframes pulse{50%{opacity:.3}}
+
+  button{
+    width:100%; height:52px; padding:0 18px; font-size:16px; font-weight:700; font-family:inherit;
+    border:none; border-radius:14px; background:var(--amber); color:#fff; cursor:pointer; margin:0 0 10px;
+  }
+  button:active{transform:scale(.99)}
+  button.sec{background:#2A2A28} button.ghost{background:#B9B5AA}
+  button:disabled{opacity:.45; cursor:not-allowed}
+
+  .warn{display:none; background:#FBE6DD; border:1px solid #F2C3B0; border-radius:14px; padding:13px 14px; margin:0 0 16px; font-size:14px}
+  .warn b{color:#A23A18}
+  .warn code{background:#fff; padding:1px 6px; border-radius:6px; font-size:12.5px}
+
+  .panel{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; margin:0 0 14px}
+  .panel h2{font-size:14px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:0 0 10px}
+  .ev{display:flex; gap:10px; padding:9px 0; border-top:1px solid var(--line)}
+  .ev:first-of-type{border-top:none}
+  .ev .time{font-variant-numeric:tabular-nums; font-weight:700; font-size:14px; min-width:74px; color:var(--amber-dark)}
+  .ev .title{font-size:15px}
+  .empty{color:var(--muted); font-size:14.5px; padding:4px 0}
+
+  .log{background:#23231F; color:#D7F5C8; border-radius:14px; padding:12px 14px; font:12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+       white-space:pre-wrap; word-break:break-word; max-height:240px; overflow:auto; margin-top:14px}
+  .log .err{color:#FF9E80} .log .ok{color:#B9F6CA} .log .dim{color:#9A9A92}
+  .foot{text-align:center; font-size:12.5px; color:var(--muted); margin-top:22px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="logo">
+    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><circle cx="14" cy="16" r="10" fill="#fff" stroke="#57564F" stroke-width="1.5"/><path d="M23 14 L31 16 L23 18 Z" fill="#E8913A"/><circle cx="16.5" cy="14" r="1.7" fill="#2C2C2A"/></svg>
+    <span>Goose · Calendar test</span>
+  </div>
+
+  <h1>Can Goose see your calendar? 🦢</h1>
+  <p class="sub">A throwaway page to prove the Google Calendar connection works end-to-end (read <i>and</i> write). Once it's green, I'll fold this into the real Goose flow.</p>
+
+  <div class="pill" id="status"><span class="dot"></span><span id="statusText">Not connected</span></div>
+
+  <div class="warn" id="warn">
+    <b>Almost there.</b> No Client ID is set yet, so connecting will fail. Open <code>config.js</code> and paste the Client ID from <b>CALENDAR_SETUP.md → Part B</b>, then reload this page.
+  </div>
+
+  <button id="connect">🔗 Connect Google Calendar</button>
+
+  <div class="panel" id="results" style="display:none">
+    <h2>Today on your calendar</h2>
+    <div id="events"></div>
+  </div>
+
+  <button id="write" class="sec" style="display:none">🦢 Drop a test event (10 min from now)</button>
+  <button id="disconnect" class="ghost" style="display:none">Disconnect</button>
+
+  <div class="log" id="log"><span class="dim">Logs will appear here…</span></div>
+
+  <p class="foot">Test events are harmless — delete the 🦢 one anytime.</p>
+</div>
+
+<!-- Google Identity Services (provides the OAuth token popup). Loads async. -->
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script src="/config.js"></script>
+<script src="/gcal.js"></script>
+<script>
+  var $ = function (id) { return document.getElementById(id); };
+  var firstLog = true;
+
+  function log(msg, cls) {
+    var el = $("log");
+    if (firstLog) { el.innerHTML = ""; firstLog = false; }
+    var line = document.createElement("div");
+    if (cls) line.className = cls;
+    var t = new Date().toLocaleTimeString();
+    line.textContent = t + "  " + msg;
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function setStatus(text, kind) {
+    $("statusText").textContent = text;
+    $("status").className = "pill" + (kind ? " " + kind : "");
+  }
+
+  function fmtTime(ev) {
+    if (ev.start && ev.start.date && !ev.start.dateTime) return "all day";
+    var d = new Date(ev.start.dateTime);
+    return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  }
+
+  function renderEvents(items) {
+    $("results").style.display = "block";
+    var box = $("events");
+    box.innerHTML = "";
+    if (!items.length) {
+      box.innerHTML = '<div class="empty">No events today. Goose finds that suspicious. 🦢</div>';
+      return;
+    }
+    items.forEach(function (ev) {
+      var row = document.createElement("div");
+      row.className = "ev";
+      row.innerHTML = '<div class="time"></div><div class="title"></div>';
+      row.querySelector(".time").textContent = fmtTime(ev);
+      row.querySelector(".title").textContent = ev.summary || "(no title)";
+      box.appendChild(row);
+    });
+  }
+
+  // Surface config problems before the user even taps Connect.
+  window.addEventListener("load", function () {
+    setTimeout(function () {
+      if (!window.GooseCal) { log("gcal.js failed to load.", "err"); return; }
+      if (!GooseCal.isConfigured()) {
+        $("warn").style.display = "block";
+        setStatus("No Client ID set", "bad");
+        log("config.js has no real Client ID yet — paste it in, then reload.", "err");
+      } else {
+        log("Client ID detected. Ready to connect.", "ok");
+      }
+      if (!GooseCal.isLibReady()) log("Waiting on Google's sign-in library to finish loading…", "dim");
+    }, 400);
+  });
+
+  $("connect").onclick = function () {
+    setStatus("Connecting…", "busy");
+    log("Requesting Google authorization (scope: calendar.events)…");
+    GooseCal.connect().then(function () {
+      setStatus("Connected", "ok");
+      log("Authorized. Got an access token.", "ok");
+      $("disconnect").style.display = "block";
+      $("write").style.display = "block";
+      $("connect").textContent = "🔄 Reconnect / refresh";
+      log("Fetching today's events…");
+      return GooseCal.listToday();
+    }).then(function (items) {
+      if (items) { log("Read OK — " + items.length + " event(s) today.", "ok"); renderEvents(items); }
+    }).catch(function (e) {
+      setStatus("Failed", "bad");
+      log("✗ " + e.message, "err");
+    });
+  };
+
+  $("write").onclick = function () {
+    log("Creating a test event to prove WRITE access…");
+    GooseCal.addTestEvent().then(function (ev) {
+      var when = ev && ev.start ? new Date(ev.start.dateTime).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "soon";
+      log("✓ Write OK — event created for " + when + ". Check your calendar (and delete it).", "ok");
+      if (ev && ev.htmlLink) log("   " + ev.htmlLink, "dim");
+      return GooseCal.listToday().then(renderEvents);
+    }).catch(function (e) {
+      log("✗ Write failed: " + e.message, "err");
+    });
+  };
+
+  $("disconnect").onclick = function () {
+    GooseCal.disconnect();
+    setStatus("Not connected");
+    $("results").style.display = "none";
+    $("write").style.display = "none";
+    $("disconnect").style.display = "none";
+    $("connect").textContent = "🔗 Connect Google Calendar";
+    log("Disconnected (token revoked).", "dim");
+  };
+</script>
+</body>
+</html>
