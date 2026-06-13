@@ -139,12 +139,19 @@
   // the referred person knows who sicced Goose on them (closes the viral loop).
   (function(){
     try{
-      var from=new URLSearchParams(location.search).get('from');
+      var q=new URLSearchParams(location.search);
+      var from=q.get('from'), stop=q.get('stop');
+      var h=document.getElementById('hero'), s=document.getElementById('heroSub');
+      if(stop){
+        try{localStorage.setItem('goose-optout','1');}catch(e){}
+        if(h) h.textContent='🔕 Goose will back off.';
+        if(s) s.textContent='You won’t get tattle alerts on a friend’s behalf anymore. Ask them to turn off auto-tattle for you. (You can still use Goose for yourself — it’s kind of great.)';
+        return;
+      }
       if(from){
         from=from.slice(0,40);
-        var h=document.getElementById('hero'), s=document.getElementById('heroSub');
         if(h) h.textContent='🪿 '+from+' just sicced Goose on you.';
-        if(s) s.textContent='They bet you can’t finish your tasks. Prove '+from+' wrong — tell Goose what you’re locking in and it’ll hunt you down until it’s done.';
+        if(s) s.innerHTML='They bet you can’t finish your tasks. Prove '+from.replace(/</g,'')+' wrong — tell Goose what you’re locking in.<br><a href="?stop=1" style="color:var(--muted);font-size:13px;text-decoration:underline">🔕 not into it? tell Goose to back off</a>';
       }
     }catch(e){}
   })();

@@ -312,11 +312,13 @@ function tattle(){
     $('tattlePreview').textContent=current;
   }
   $('tattleName').addEventListener('input',()=>{ clearTimeout(window._tt); window._tt=setTimeout(refresh,500); });
+  const saved=getBuddy(); if(saved){ $('tattleName').value=saved.name||''; $('tattleAuto').checked=!!saved.auto; }
   refresh();
-  function done(){ const f=$('tattleName').value.trim()||'Your friend'; close(); gooseSay(f+' has been notified. There is no hiding from the flock now. 🪿'); }
+  function savePref(){ const f=$('tattleName').value.trim(); const auto=$('tattleAuto').checked; if(f&&auto) setBuddy({name:f,auto:true}); else if(!auto) setBuddy(null); }
+  function done(){ const f=$('tattleName').value.trim()||'Your friend'; savePref(); close(); gooseSay(f+' has been notified. '+($('tattleAuto')&&getBuddy()&&getBuddy().auto?'Goose will keep '+f+' posted automatically. ':'')+'No hiding from the flock now. 🪿'); }
   $('tWa').onclick=()=>{ window.open('https://wa.me/?text='+encodeURIComponent(current),'_blank'); done(); };
   $('tShare').onclick=()=>{ if(navigator.share){ navigator.share({text:current}).then(done).catch(()=>{}); } else { try{navigator.clipboard.writeText(current);}catch(e){} done(); } };
-  $('tCopy').onclick=()=>{ try{navigator.clipboard.writeText(current);}catch(e){} $('tCopy').textContent='Copied ✓'; };
+  $('tCopy').onclick=()=>{ savePref(); try{navigator.clipboard.writeText(current);}catch(e){} $('tCopy').textContent='Copied ✓'; };
 }
 function markGhost(i){
   if(tasks[i].done) return;
@@ -324,6 +326,7 @@ function markGhost(i){
   const t=tasks[i].text; pushHistory('ghosted "'+t+'"');
   gooseSayAI('ghost', {task:t}, pick(NAG.ghost).replace('{t}',t));
   updateHud(); renderTasks();
+  autoTattle(t); // opt-in: alert saved buddy when you procrastinate
 }
 function nagSomeone(){
   const pending=tasks.filter(t=>!t.done);
