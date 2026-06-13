@@ -25,7 +25,7 @@
 
 **Shipped & live:**
 - **Landing page** (`/`) — email waitlist → **Google Apps Script → Google Sheet** (collecting signups now); rotating nag samples; PWA install.
-- **Interactive app** (`/app`) — name + top-3 tasks → a goose "chat" that nags with escalating intensity, done/ghost/skip, XP·levels·streak·confetti, and a **shareable Goose card** (html2canvas + Web Share). ✅ Nags now come from **Claude via `/api/nag`** (server-side; canned strings as offline fallback).
+- **Interactive app** (`/app`) — **opens straight into the goose chat**: Goose roasts you, asks your name, then suggests **Connect Calendar** → your real calendar events **become the tasks** it nags about (done/ghost/skip, XP·levels·streak·confetti, shareable card). Type a one-off task in the chat box too. ✅ Nags from **Claude via `/api/nag`** (canned fallback). ✅ **Remembers across closes** — name, tasks, streak & the full chat persist in `localStorage` (this device).
 - **Focus-watch + push (off-task callout)** — the goose notices when you *leave the app mid-task* (Page Visibility API) and (a) roasts you on return (`kind:'offtask'` → `/api/nag`) **and (b) fires a real push notification to your phone while you're still away** (`/api/push`, Web Push + VAPID; the client hands over its own subscription, so no DB). PWA limit: it knows *that* you left, not which app you opened (true OS screen-time = native only). Needs `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` env vars in Vercel; iOS needs the PWA installed to the home screen.
 - **PWA** — manifest, service worker, icon, install prompts, **browser-tab favicon** (SVG `icon.svg`, on both `/` and `/app`).
 - *(As-built note: vanilla HTML/JS static PWA, not the Next.js in §5 — fine for the window.)*

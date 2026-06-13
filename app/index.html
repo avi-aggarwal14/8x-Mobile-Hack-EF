@@ -86,27 +86,11 @@
 <body>
 <div class="app">
 
-  <!-- START -->
-  <section class="screen start" id="s-start">
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
-    <svg class="goose-hero" viewBox="0 0 220 190" aria-label="Goose"><circle cx="110" cy="98" r="80" fill="#FDEBCF"/><path d="M40 96 C55 72 78 64 100 66 C120 50 138 40 152 40 Q175 40 196 52 Q180 58 166 60 C168 78 150 92 140 104 C134 120 120 140 96 148 C70 154 50 140 44 120 C42 110 40 102 40 96 Z" fill="#fff" stroke="#57564F" stroke-width="2.5" stroke-linejoin="round"/><path d="M88 92 C104 100 116 116 106 132" fill="none" stroke="#57564F" stroke-width="2" stroke-linecap="round"/><path d="M182 46 L201 52 L182 59 Z" fill="#F2A03D" stroke="#C0721F" stroke-width="1"/><circle cx="158" cy="50" r="3.6" fill="#2A2A28"/><path d="M149 41 L163 44" stroke="#2A2A28" stroke-width="2" stroke-linecap="round"/></svg>
-    <h1>Goose</h1>
-    <p class="sub">Tell me what you're avoiding. I'll handle the rest. 🪿</p>
-    <div class="field"><label>your name</label><input class="inp" id="name" placeholder="e.g. Avi" /></div>
-    <div class="field"><label>task 1 — the big one</label><input class="inp t-in" placeholder="Ship the landing page" /></div>
-    <div class="field"><label>task 2</label><input class="inp t-in" placeholder="Email the 3 leads" /></div>
-    <div class="field"><label>task 3</label><input class="inp t-in" placeholder="Go to the gym" /></div>
-    <div style="height:8px"></div>
-    <button class="btn coral" id="go">Sic the goose on me →</button>
-    <button class="btn" id="installBtn" style="display:none;margin-top:10px;background:var(--ink);color:var(--bg)">📲 Install Goose</button>
-    <div id="installHint" style="display:none;margin-top:10px;background:var(--card);border-radius:14px;padding:12px;font-size:13px;line-height:1.5;color:var(--ink);box-shadow:var(--shadow)"></div>
-    <button class="btn" id="pushBtn" style="margin-top:10px;background:var(--card);color:var(--coral);box-shadow:var(--shadow)">🔔 Let Goose hunt you down</button>
-    <button class="btn" id="calConnect" style="margin-top:10px;background:var(--card);color:var(--amber-d);box-shadow:var(--shadow)">🗓️ Connect Google Calendar</button>
-    <p id="calStatus" style="margin:8px 2px 0;font-size:13px;font-weight:700;color:var(--muted);line-height:1.45;text-align:center"></p>
-  </section>
+  <!-- theme toggle: floats top-right above the chat -->
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 
-  <!-- CHAT -->
-  <section class="screen hide" id="s-chat">
+  <!-- CHAT — the app opens straight here -->
+  <section class="screen" id="s-chat">
     <div class="hud">
       <div class="hud-top">
         <span class="lvl">🪿 Lvl <span id="lvl">1</span></span>
@@ -116,6 +100,17 @@
     </div>
     <div class="thread" id="thread"></div>
     <div class="tasks" id="taskList"></div>
+
+    <!-- Connect Calendar = Goose's task source -->
+    <button class="btn" id="calConnect" style="margin-top:10px;background:var(--card);color:var(--amber-d);box-shadow:var(--shadow)">🗓️ Connect Google Calendar</button>
+    <p id="calStatus" style="margin:8px 2px 0;font-size:13px;font-weight:700;color:var(--muted);line-height:1.45;text-align:center"></p>
+
+    <!-- chat composer: first message = your name, then each line = a task -->
+    <form id="composer" autocomplete="off" style="display:flex;gap:8px;margin-top:10px">
+      <input id="chatInput" placeholder="Type your name…" autocomplete="off" style="flex:1;min-width:0;height:50px;padding:0 16px;font-size:16px;font-family:Nunito;font-weight:700;color:var(--ink);background:var(--card);border:2.5px solid #ECE6D8;border-radius:16px;outline:none" />
+      <button class="btn coral" id="send" type="submit" style="width:auto;padding:0 20px">➤</button>
+    </form>
+
     <div class="barbtns">
       <button class="btn" id="skip">⏩ Time skip</button>
       <button class="btn coral" id="toCard">Share card</button>
@@ -125,6 +120,9 @@
     <!-- hook → standalone mock Screen-Time dashboard (screentime.html) -->
     <a href="screentime.html" style="display:block;text-align:center;margin-top:10px;font-family:'Baloo 2';font-weight:700;font-size:14px;color:var(--amber-d);text-decoration:none">📱 See what your phone has been up to →</a>
     <a href="#" id="tattleLink" style="display:block;text-align:center;margin-top:8px;font-family:'Baloo 2';font-weight:700;font-size:14px;color:var(--coral);text-decoration:none">🚨 Sic Goose on a friend →</a>
+    <button class="btn" id="pushBtn" style="margin-top:10px;background:var(--card);color:var(--coral);box-shadow:var(--shadow)">🔔 Let Goose hunt you down</button>
+    <button class="btn" id="installBtn" style="display:none;margin-top:10px;background:var(--ink);color:var(--bg)">📲 Install Goose</button>
+    <div id="installHint" style="display:none;margin-top:10px;background:var(--card);border-radius:14px;padding:12px;font-size:13px;line-height:1.5;color:var(--ink);box-shadow:var(--shadow)"></div>
   </section>
 
   <!-- CARD -->
@@ -167,19 +165,20 @@ const pick = a => a[Math.floor(Math.random()*a.length)];
 const $ = id => document.getElementById(id);
 let tasks=[], xp=0, streak=0, nagLevel={}, name="";
 
-function show(id){['s-start','s-chat','s-card'].forEach(s=>$(s).classList.toggle('hide',s!==id));}
-function addBub(text, me){
+function show(id){['s-chat','s-card'].forEach(s=>$(s).classList.toggle('hide',s!==id));}
+function addBub(text, me, replay){
   const row=document.createElement('div'); row.className='row'+(me?' me':'');
   row.innerHTML = (me?'':'<div class="av">🪿</div>')+'<div class="bub"></div>';
   row.querySelector('.bub').textContent=text;
   $('thread').appendChild(row); $('thread').scrollTop=$('thread').scrollHeight;
+  if(!replay && typeof recordMsg==='function') recordMsg(!!me, text);
 }
 function gooseSay(text){ addBub(text,false); }
 
 /* ---- Claude-powered goose lines (via /api/nag), with canned fallback ---- */
 const NAG_API='/api/nag';
 let history=[];
-function pushHistory(s){ history.push(s); if(history.length>6) history.shift(); }
+function pushHistory(s){ history.push(s); if(history.length>6) history.shift(); if(typeof saveState==='function') saveState(); }
 function timeNow(){ try{return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}catch(e){return '';} }
 function taskSummary(){ return tasks.map(t=>({text:t.text,done:!!t.done})); }
 function addTyping(){
@@ -199,6 +198,7 @@ async function gooseSayAI(kind, ctx, fallback){
   }catch(e){/* offline / API down → keep fallback */}
   bub.classList.remove('typing'); bub.textContent=text;
   $('thread').scrollTop=$('thread').scrollHeight;
+  if(typeof recordMsg==='function') recordMsg(false, text);
 }
 function updateHud(){
   $('xp').style.width=Math.min(100,(xp%100))+'%';
@@ -290,19 +290,90 @@ function confetti(){
     e.style.animationDelay=(Math.random()*.3)+'s';document.body.appendChild(e);setTimeout(()=>e.remove(),1500);}
 }
 
-$('go').onclick=()=>{
-  name=$('name').value.trim();
-  tasks=[...document.querySelectorAll('.t-in')].map(i=>i.value.trim()).filter(Boolean)
-        .map(text=>({text,done:false}));
-  if(!tasks.length){ tasks=[{text:'the thing you keep avoiding',done:false}]; }
-  try{localStorage.setItem('goose-tasks',JSON.stringify(tasks.map(t=>t.text)));localStorage.setItem('goose-name',name);}catch(e){} // share tasks w/ screentime.html
-  show('s-chat'); $('thread').innerHTML=''; xp=0; streak=0; nagLevel={}; history=[]; updateHud(); renderTasks();
-  gooseSayAI('intro', {}, (name?name+'. ':'')+pick(NAG.intro));
-  setTimeout(()=>tasks.forEach((t,i)=>setTimeout(()=>{
-    nagLevel[t.text]=1; pushHistory('set task "'+t.text+'"');
-    gooseSayAI('nag', {task:t.text, nagLevel:1}, pick(NAG.l1).replace('{t}',t.text));
-  },700*(i+1))),700);
-};
+/* ---- persistence: Goose remembers across app closes (localStorage, this device) ---- */
+const STORE='goose-state-v1';
+let thread=[];        // mirror of the chat ([{me,text}]) so the conversation survives a close
+let phase='name';     // 'name' until Goose knows who you are, then 'tasks'
+let calImported=false;
+function recordMsg(me, text){ thread.push({me:!!me, text:text}); if(thread.length>60) thread=thread.slice(-60); saveState(); }
+function saveState(){
+  try{
+    localStorage.setItem(STORE, JSON.stringify({name,tasks,xp,streak,nagLevel,history,thread:thread.slice(-60),phase,calImported}));
+    localStorage.setItem('goose-tasks', JSON.stringify(tasks.map(t=>t.text)));  // keep screentime.html in sync
+    localStorage.setItem('goose-name', name);
+  }catch(e){}
+}
+function loadState(){
+  try{ const s=JSON.parse(localStorage.getItem(STORE)||'null');
+    if(s && typeof s==='object'){
+      name=s.name||''; tasks=Array.isArray(s.tasks)?s.tasks:[]; xp=s.xp||0; streak=s.streak||0;
+      nagLevel=s.nagLevel||{}; history=Array.isArray(s.history)?s.history:[];
+      thread=Array.isArray(s.thread)?s.thread:[]; phase=s.phase||'name'; calImported=!!s.calImported;
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+function replayThread(){ $('thread').innerHTML=''; thread.forEach(m=>addBub(m.text, m.me, true)); }
+
+/* ---- add a task (from the chat box OR the calendar) ---- */
+function addTask(text, opts){
+  opts=opts||{};
+  text=String(text||'').trim(); if(!text) return false;
+  if(tasks.some(t=>t.text.toLowerCase()===text.toLowerCase())) return false;  // dedupe
+  tasks.push({text,done:false}); nagLevel[text]=1; pushHistory('set task "'+text+'"');
+  renderTasks(); saveState();
+  if(opts.nag) gooseSayAI('nag', {task:text, nagLevel:1}, pick(NAG.l1).replace('{t}',text));
+  return true;
+}
+
+/* ---- calendar events become Goose's tasks ---- */
+function importCalendar(items){
+  let added=0;
+  (items||[]).forEach(ev=>{
+    let title=(ev.summary||'(busy)'), when='';
+    try{ if(ev.start && ev.start.dateTime){ when=new Date(ev.start.dateTime).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})+' — '; } }catch(e){}
+    let text=when+title;
+    if(!tasks.some(t=>t.text===text)){ tasks.push({text,done:false}); nagLevel[text]=1; added++; }
+  });
+  calImported=true; renderTasks(); saveState();
+  if(added){ pushHistory('imported '+added+' calendar event(s)');
+    gooseSayAI('calendar', {count:added}, "Found "+added+" thing"+(added===1?'':'s')+" you scheduled. Let's see how many you actually do. 🪿");
+  } else {
+    gooseSayAI('calendarEmpty', {}, "Your calendar's empty today. Suspicious. What are you really up to? 🪿");
+  }
+}
+
+/* ---- chat composer: first message = your name, then each line = a task ---- */
+$('composer').addEventListener('submit', e=>{
+  e.preventDefault();
+  const val=$('chatInput').value.trim(); if(!val) return;
+  $('chatInput').value='';
+  addBub(val, true);
+  if(phase==='name'){
+    name=val; phase='tasks'; $('chatInput').placeholder='Tell Goose a task…'; saveState();
+    gooseSayAI('named', {}, name+". Noted. Connect your calendar so I can see what you're dodging — or just type a task and I'll start hunting. 🪿");
+  } else {
+    if(!addTask(val, {nag:true})) gooseSayAI('dupe', {task:val}, "You already told me that one. I don't forget anymore. 🪿");
+  }
+});
+
+/* ---- boot: open straight into the chat; remember everything from last time ---- */
+function boot(){
+  const returning=loadState();
+  show('s-chat'); updateHud();
+  if($('chatInput')) $('chatInput').placeholder = (phase==='name') ? 'Type your name…' : 'Tell Goose a task…';
+  if(returning && thread.length){
+    replayThread(); renderTasks();
+    gooseSayAI('welcomeback', {}, (name?name+'. ':'')+'Back already? I kept everything — your tasks, your excuses, the streak. 🪿');
+  } else {
+    name=''; tasks=[]; xp=0; streak=0; nagLevel={}; history=[]; thread=[]; phase='name'; calImported=false;
+    renderTasks();
+    gooseSayAI('askname', {}, 'Oh good, a volunteer. What do I call you? I need a name to scream when you start slacking. 🪿');
+  }
+  saveState();
+}
+boot();
 $('skip').onclick=()=>{ gooseSay(pick(NAG.skip)); setTimeout(nagSomeone,500); };
 $('proofInput').addEventListener('change', e=>onProofPicked(e.target.files[0]));
 $('tattleLink').onclick=e=>{ e.preventDefault(); tattle(); };
@@ -310,7 +381,7 @@ $('toCard').onclick=()=>{
   const done=tasks.filter(t=>t.done).length;
   $('cardName').textContent=(name?name+' ':'')+'survived Goose today';
   $('cardDone').textContent=done; $('cardTotal').textContent=tasks.length;
-  $('cardNag').textContent='"'+pick(done===tasks.length?NAG.allDone:NAG.l3).replace('{t}',pick(tasks).text)+'"';
+  $('cardNag').textContent='"'+pick(done===tasks.length?NAG.allDone:NAG.l3).replace('{t}',((pick(tasks)||{}).text||'your tasks'))+'"';
   show('s-card');
 };
 $('back').onclick=()=>show('s-chat');
@@ -426,10 +497,12 @@ document.addEventListener('visibilitychange',()=>{
       if(!GooseCal.isConfigured()){ say('Calendar isn’t set up yet.'); return; }
       say('Opening Google… approve the “unverified app” screen (Advanced → Continue) to let Goose in. 🪿');
       GooseCal.connect().then(function(){
-        say('✅ Connected. Goose can see your calendar.');
+        say('✅ Connected. Reading your day…'); btn.textContent='🔄 Calendar connected';
         return GooseCal.listToday();
       }).then(function(items){
-        if(items){ say('✅ Goose sees '+items.length+' thing'+(items.length===1?'':'s')+' on your calendar today. Nowhere to hide. 🪿'); btn.textContent='🔄 Calendar connected'; }
+        items=items||[];
+        say('✅ Pulled '+items.length+' thing'+(items.length===1?'':'s')+' off your calendar. Nowhere to hide. 🪿');
+        if(typeof importCalendar==='function') importCalendar(items);
       }).catch(function(e){ say('✗ '+((e&&e.message)||'Could not connect.')); });
     });
   })();

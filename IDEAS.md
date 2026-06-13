@@ -19,7 +19,7 @@
 
 ## 🟢 Status — live (June 13, mid-build)
 **Deployed:** https://goose-lockin.vercel.app · **Repo:** 8x-Mobile-Hack-EF
-- ✅ Landing + waitlist (email → Google Sheet) · ✅ interactive `/app` (3 tasks → goose chat, done/ghost, streak/XP, shareable card) · ✅ PWA install.
+- ✅ Landing + waitlist (email → Google Sheet) · ✅ interactive `/app` (**chat-first**: Goose asks your name → Connect Calendar → events become tasks; done/ghost, streak/XP, shareable card; **remembers across closes**) · ✅ PWA install.
 - ✅ **Claude API wired:** goose nags are now generated live by **Claude (Haiku 4.5)** via a server-side `/api/nag` function — canned strings kept as the offline fallback.
 - ✅ **Focus-watch:** the goose catches you *leaving the app mid-task* (Page Visibility) and calls you out on return, scaled to how long you were gone. *(A web app sees that you left, not which app you opened.)*
 - 🟡 Building: **Google Calendar API** (reads your real deadlines to nag about + writes new tasks/reminders to nag about later) → schedules the nags; **chat app (Telegram/WhatsApp) delivers** them; **phone capture** on the waitlist. ✅ **Connect Calendar now on the landing + app start screen**; OAuth **published to Production** so anyone can connect (via the "unverified app" warning).
@@ -52,13 +52,14 @@ There's **one open track** and a fixed rubric (① Originality ② UI/UX ③ Exe
 ## Build checklist (speed-first)
 - [x] **PWA → Vercel** — live at goose-lockin.vercel.app *(as-built: static HTML/JS, not Next.js)*
 - [x] **Goose persona prompt** (Claude) — ✅ wired via server-side `/api/nag` (Haiku 4.5); generates intro/nags/done/ghost/all-done in character; canned strings now the offline fallback. *(Needs `ANTHROPIC_API_KEY` set in Vercel.)*
-- [x] Task input — name + top-3 tasks *(text only; voice = stretch)*
+- [x] **Chat-first entry** — `/app` opens straight into the goose chat; Goose asks your name in-chat, then a chat box for one-off tasks *(old 3-task setup screen removed)*
+- [x] **Remembers across closes** — name, tasks, streak & full chat saved to `localStorage`, restored on reopen *(same device; cross-device = accounts, later)*
 - [~] Nudge delivery — **Calendar schedules → chat app (Telegram/WhatsApp) delivers**; ✅ in-app goose chat works as the demo fallback
 - [x] **Off-task callout (focus-watch + push)** — Page Visibility detects leaving Goose mid-task → Claude roast on return (`offtask`) **and a real push notification to your phone while you're away** (`/api/push`, Web Push + VAPID). ⚠️ Needs `VAPID_*` env vars in Vercel; iOS needs the installed PWA.
 - [x] Streak + done/ghost states with Goose reactions *(+ XP, levels, confetti)*
 - [x] Shareable Goose card (html2canvas + Web Share API) — ✅ now prints `goose-lockin.vercel.app`
 - [~] Waitlist — ✅ email → Google Apps Script → Google Sheet; 🟡 phone capture in progress; ⬜ live counter + QR
-- [~] **Google Calendar API** — ✅ client-side read+write connector, Client ID wired, **Connect button on landing + app start screen**, OAuth **published to Production** (anyone connects via the unverified-app warning); ⬜ fold calendar reads into the nags
+- [~] **Google Calendar API** — ✅ client-side read+write connector, Client ID wired, **Connect button on landing + app start screen**, OAuth **published to Production**; ✅ **calendar events now import as the tasks Goose nags about in `/app`**; ⬜ write-back reminders + scheduled delivery
 - [~] **UI/UX polish pass** — clean Baloo/Nunito UI shipped; keep refining (criterion ②)
 
 ## Demo script (~2–3 min — confirm limit)
