@@ -126,7 +126,7 @@
         <h2 id="cardName">I survived Goose today</h2>
         <div class="big"><span id="cardDone">0</span>/<span id="cardTotal">3</span> done</div>
         <div class="nagq" id="cardNag">"Bold of you to ignore a goose."</div>
-        <div class="url">goose-8x.vercel.app</div>
+        <div class="url">goose-lockin.vercel.app</div>
       </div>
       <div style="height:14px"></div>
       <button class="btn green" id="share">Share my Goose card</button>
@@ -233,13 +233,13 @@ $('share').onclick=async()=>{
     canvas.toBlob(async blob=>{
       const file=new File([blob],'goose-card.png',{type:'image/png'});
       if(navigator.canShare && navigator.canShare({files:[file]})){
-        await navigator.share({files:[file],text:'I survived Goose today 🪿 goose-8x.vercel.app'});
+        await navigator.share({files:[file],text:'I survived Goose today 🪿 goose-lockin.vercel.app'});
       }else{
         const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='goose-card.png';a.click();
       }
     });
   }catch(e){
-    if(navigator.share) navigator.share({text:'I survived Goose today 🪿 goose-8x.vercel.app'});
+    if(navigator.share) navigator.share({text:'I survived Goose today 🪿 goose-lockin.vercel.app'});
   }
 };
 let deferredPrompt=null;

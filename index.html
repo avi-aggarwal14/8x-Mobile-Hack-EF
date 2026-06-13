@@ -143,7 +143,7 @@
   // --- signup counter -----------------------------------------------------
   // COUNT_BASE = fallback shown if the endpoint can't report a real count.
   // Set this to the real signup number from the Google Sheet.
-  var COUNT_BASE = 0;
+  var COUNT_BASE = 2;
   var countEl = document.getElementById('counter');
   var numEl = document.getElementById('countNum');
   var liveCount = COUNT_BASE + (parseInt(localStorage.getItem('goose-local-signups'),10) || 0);
