@@ -16,19 +16,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script>(function(){try{var t=localStorage.getItem('goose-theme');if(!t)t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <style>
   :root{
     --bg:#FBF7EF; --card:#FFFFFF; --ink:#2A2A28; --muted:#7A786F;
     --amber:#F2A03D; --amber-d:#C0721F; --coral:#E2603C; --green:#2FA86B; --disc:#FDEBCF;
     --bubble:#EFEADE; --shadow:0 8px 0 rgba(42,42,40,.10);
   }
-  html[data-theme="dark"]{
-    --bg:#181613; --card:#23201B; --ink:#F4F0E7; --muted:#A8A296;
-    --amber:#F4A84A; --amber-d:#F4A84A; --coral:#E8714E; --green:#46B97F; --disc:#2E2A22;
-    --bubble:#2A2722; --shadow:0 8px 0 rgba(0,0,0,.30);
-  }
-  .theme-toggle{position:absolute;top:14px;right:14px;z-index:6;background:none;border:none;font-size:22px;line-height:1;padding:4px;cursor:pointer;color:var(--ink)}
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%}
   body{background:var(--bg); color:var(--ink); font-family:Nunito,system-ui,sans-serif; overflow:hidden}
@@ -73,6 +66,23 @@
   .mini.d{background:var(--green)} .mini.g{background:#B9B5AA}
   .barbtns{flex:none;display:flex;gap:8px;padding-top:10px}
   .barbtns .btn{font-size:16px;padding:13px}
+  /* chat fills the screen; the toolkit scrolls in below it */
+  #s-chat{display:block;padding:0}
+  .chat-hero{height:100dvh;display:flex;flex-direction:column;padding:20px}
+  .chat-hero .thread{min-height:0}
+  .scrollcue{flex:none;text-align:center;font-family:"Baloo 2";font-weight:700;font-size:12px;color:var(--muted);opacity:.55;padding:9px 0 0;animation:cuebob 1.8s ease-in-out infinite}
+  @keyframes cuebob{0%,100%{transform:translateY(0)}50%{transform:translateY(2.5px)}}
+  .tools{padding:8px 20px 30px;display:flex;flex-direction:column;gap:10px}
+  .tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .tool{font-family:"Baloo 2";font-weight:700;font-size:14.5px;border:2px solid #ECE6D8;border-radius:15px;
+        padding:12px 8px;background:var(--card);color:var(--ink);cursor:pointer;display:flex;align-items:center;
+        justify-content:center;gap:6px;text-align:center;line-height:1.15;min-height:50px;transition:transform .06s}
+  .tool:active{transform:scale(.97)}
+  .tool.wide{grid-column:1 / -1}
+  .toolnote{margin:0;font-size:12.5px;font-weight:700;color:var(--muted);text-align:center;line-height:1.4}
+  .toolnote.calwarn{font-weight:600;font-size:11.5px;opacity:.8}
+  .toolnote:empty{display:none}
+  .toolhint{background:var(--card);border-radius:14px;padding:12px;font-size:13px;line-height:1.5;color:var(--ink);box-shadow:var(--shadow)}
   /* CARD screen */
   .card-wrap{flex:1;display:flex;flex-direction:column;justify-content:center}
   #card{background:var(--amber);border-radius:26px;padding:24px;color:#fff;text-align:center}
@@ -88,43 +98,44 @@
 <body>
 <div class="app">
 
-  <!-- theme toggle: floats top-right above the chat -->
-  <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
-
-  <!-- CHAT — the app opens straight here -->
+  <!-- CHAT — opens straight here; chat fills the screen, toolkit scrolls in below -->
   <section class="screen" id="s-chat">
-    <div class="hud">
-      <div class="hud-top">
-        <span class="lvl">🪿 Lvl <span id="lvl">1</span></span>
-        <span class="streak">🔥 <span id="streak">0</span> streak</span>
+    <div class="chat-hero">
+      <div class="hud">
+        <div class="hud-top">
+          <span class="lvl">🪿 Lvl <span id="lvl">1</span></span>
+          <span class="streak">🔥 <span id="streak">0</span> streak</span>
+        </div>
+        <div class="xpbar"><div class="xpfill" id="xp"></div></div>
       </div>
-      <div class="xpbar"><div class="xpfill" id="xp"></div></div>
+      <div class="thread" id="thread"></div>
+      <div class="tasks" id="taskList"></div>
+
+      <!-- chat composer: first message = your name, then each line = a task -->
+      <form id="composer" autocomplete="off" style="display:flex;gap:8px;margin-top:10px">
+        <input id="chatInput" placeholder="Message Goose…" autocomplete="off" style="flex:1;min-width:0;height:50px;padding:0 16px;font-size:16px;font-family:Nunito;font-weight:700;color:var(--ink);background:var(--card);border:2.5px solid #ECE6D8;border-radius:16px;outline:none" />
+        <button class="btn coral" id="send" type="submit" style="width:auto;padding:0 20px">➤</button>
+      </form>
+
+      <div class="scrollcue" aria-hidden="true">⌄ calendar · share · more</div>
     </div>
-    <div class="thread" id="thread"></div>
-    <div class="tasks" id="taskList"></div>
 
-    <!-- Connect Calendar = Goose's task source -->
-    <button class="btn" id="calConnect" style="margin-top:10px;background:var(--card);color:var(--amber-d);box-shadow:var(--shadow)">🗓️ Connect Google Calendar</button>
-    <p id="calStatus" style="margin:8px 2px 0;font-size:13px;font-weight:700;color:var(--muted);line-height:1.45;text-align:center"></p>
-
-    <!-- chat composer: first message = your name, then each line = a task -->
-    <form id="composer" autocomplete="off" style="display:flex;gap:8px;margin-top:10px">
-      <input id="chatInput" placeholder="Type your name…" autocomplete="off" style="flex:1;min-width:0;height:50px;padding:0 16px;font-size:16px;font-family:Nunito;font-weight:700;color:var(--ink);background:var(--card);border:2.5px solid #ECE6D8;border-radius:16px;outline:none" />
-      <button class="btn coral" id="send" type="submit" style="width:auto;padding:0 20px">➤</button>
-    </form>
-
-    <div class="barbtns">
-      <button class="btn" id="skip">⏩ Time skip</button>
-      <button class="btn coral" id="toCard">Share card</button>
+    <!-- TOOLKIT — scroll down to reveal; scroll up for just the chat -->
+    <div class="tools">
+      <div class="tools-grid">
+        <button class="tool" id="calConnect">🗓️ Calendar</button>
+        <button class="tool" id="toCard">📸 Share card</button>
+        <button class="tool" id="tattleLink">🚨 Tattle</button>
+        <button class="tool" id="pushBtn">🔔 Notify me</button>
+        <button class="tool wide" id="installBtn" style="display:none">📲 Install Goose</button>
+      </div>
+      <p id="calStatus" class="toolnote"></p>
+      <p class="toolnote calwarn">Google shows an “unverified app” notice — tap <b>Advanced → Continue</b>. Goose only reads your calendar. 🪿</p>
+      <div id="installHint" class="toolhint" style="display:none"></div>
     </div>
+
     <!-- proof-or-it-didn't-happen: hidden camera/file input judged by Claude vision -->
     <input type="file" id="proofInput" accept="image/*" capture="environment" style="display:none" />
-    <!-- hook → standalone mock Screen-Time dashboard (screentime.html) -->
-    <a href="screentime.html" style="display:block;text-align:center;margin-top:10px;font-family:'Baloo 2';font-weight:700;font-size:14px;color:var(--amber-d);text-decoration:none">📱 See what your phone has been up to →</a>
-    <a href="#" id="tattleLink" style="display:block;text-align:center;margin-top:8px;font-family:'Baloo 2';font-weight:700;font-size:14px;color:var(--coral);text-decoration:none">🚨 Sic Goose on a friend →</a>
-    <button class="btn" id="pushBtn" style="margin-top:10px;background:var(--card);color:var(--coral);box-shadow:var(--shadow)">🔔 Let Goose hunt you down</button>
-    <button class="btn" id="installBtn" style="display:none;margin-top:10px;background:var(--ink);color:var(--bg)">📲 Install Goose</button>
-    <div id="installHint" style="display:none;margin-top:10px;background:var(--card);border-radius:14px;padding:12px;font-size:13px;line-height:1.5;color:var(--ink);box-shadow:var(--shadow)"></div>
   </section>
 
   <!-- CARD -->
@@ -414,7 +425,7 @@ $('composer').addEventListener('submit', e=>{
 function boot(){
   const returning=loadState();
   show('s-chat'); updateHud();
-  if($('chatInput')) $('chatInput').placeholder = (phase==='name') ? 'Type your name…' : 'Tell Goose a task…';
+  if($('chatInput')) $('chatInput').placeholder = (phase==='name') ? 'Message Goose…' : 'Tell Goose a task…';
   if(returning && thread.length){
     replayThread(); renderTasks();
     gooseSayAI('welcomeback', {}, (name?name+'. ':'')+'Back already? I kept everything — your tasks, your excuses, the streak. 🪿');
@@ -426,7 +437,6 @@ function boot(){
   saveState();
 }
 boot();
-$('skip').onclick=()=>{ gooseSay(pick(NAG.skip)); setTimeout(nagSomeone,500); };
 $('proofInput').addEventListener('change', e=>onProofPicked(e.target.files[0]));
 $('tattleLink').onclick=e=>{ e.preventDefault(); tattle(); };
 $('toCard').onclick=()=>{
@@ -459,7 +469,7 @@ const standalone=window.matchMedia('(display-mode: standalone)').matches||window
 const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});
 if(installBtn && !standalone){
-  installBtn.style.display='block';
+  installBtn.style.display='flex';
   installBtn.addEventListener('click',async()=>{
     if(deferredPrompt){deferredPrompt.prompt();const r=await deferredPrompt.userChoice;deferredPrompt=null;if(r&&r.outcome==='accepted')installBtn.style.display='none';}
     else if(isIOS){installHint.innerHTML='On iPhone: tap <b>Share</b> at the bottom of Safari, then <b>“Add to Home Screen.”</b> 🪿';installHint.style.display='block';}
@@ -468,18 +478,6 @@ if(installBtn && !standalone){
 }
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
 
-(function(){
-  const tt=document.getElementById('themeToggle');
-  const cur=()=>document.documentElement.getAttribute('data-theme');
-  const setIcon=()=>{ if(tt) tt.textContent = cur()==='dark' ? '☀️' : '🌙'; };
-  setIcon();
-  if(tt) tt.addEventListener('click',()=>{
-    const n = cur()==='dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', n);
-    try{ localStorage.setItem('goose-theme', n); }catch(e){}
-    setIcon();
-  });
-})();
 
 /* ---- Web Push: let Goose ping your phone WHILE you're off in another app ---- */
 const VAPID_PUBLIC='BIGaKxtFiujN9YYaPIwPew-xsTKQdhA0aHslNgXwkXDSgh4rJ32kB7PL8YjS1JIW3DcOFctMzcysYEG4SjxkRiM'; // PUBLIC VAPID key — safe to commit (the PRIVATE key lives only in a Vercel env var)
@@ -506,12 +504,12 @@ function sendAwayPush(){
 (function(){
   const pb=$('pushBtn'); if(!pb) return;
   if(!pushSupported){ pb.style.display='none'; return; }
-  if(Notification.permission==='granted') pb.textContent='🔔 Goose can hunt you ✓';
+  if(Notification.permission==='granted') pb.textContent='🔔 Alerts on ✓';
   pb.addEventListener('click',async()=>{
     pb.textContent='🔔 Asking…';
     const ok=await enablePush();
-    pb.textContent = ok ? '🔔 Goose can hunt you ✓'
-      : (isIOS && !standalone ? '🔔 Add Goose to your Home Screen first' : '🔔 Blocked — enable notifications in settings');
+    pb.textContent = ok ? '🔔 Alerts on ✓'
+      : (isIOS && !standalone ? '🔔 Install first' : '🔔 Blocked');
   });
 })();
 
@@ -549,7 +547,7 @@ document.addEventListener('visibilitychange',()=>{
       if(!GooseCal.isConfigured()){ say('Calendar isn’t set up yet.'); return; }
       say('Opening Google… approve the “unverified app” screen (Advanced → Continue) to let Goose in. 🪿');
       GooseCal.connect().then(function(){
-        say('✅ Connected. Reading your day…'); btn.textContent='🔄 Calendar connected';
+        say('✅ Connected. Reading your day…'); btn.textContent='🔄 Connected';
         return GooseCal.listToday();
       }).then(function(items){
         items=items||[];
