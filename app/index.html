@@ -67,6 +67,12 @@
   .bub{background:var(--bubble);color:var(--ink);padding:11px 14px;border-radius:20px;font-size:15.5px;font-weight:600;line-height:1.35;border-bottom-left-radius:6px}
   .row.me .bub{background:var(--amber);color:#fff;border-bottom-left-radius:20px;border-bottom-right-radius:6px}
   .bub.typing{opacity:.55;font-style:italic}
+  .bub.photo{padding:4px;background:var(--amber)}
+  .proofimg{display:block;max-width:170px;max-height:210px;border-radius:14px;object-fit:cover}
+  .bub.verdict.pass{background:#E4F4EC;color:#1E7A52}
+  .bub.verdict.fail{background:#FBE6DD;color:#A23A18}
+  .task.shake{animation:shake .42s cubic-bezier(.36,.07,.19,.97)}
+  @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
   .tasks{flex:none;padding-top:10px;display:flex;flex-direction:column}
   .tasks:empty{padding-top:0}
   .task{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:16px;padding:9px 10px 9px 14px;box-shadow:var(--shadow);margin-bottom:8px;overflow:hidden;
@@ -181,23 +187,126 @@
 <script>
 const NAG = {
   intro: [
-    "Oh, NOW you want accountability. Fine. Let's see what you 'forgot' today.",
-    "Three tasks. I've heard promises before. The honking starts now. 🪿",
-    "You summoned a goose for help. Tragic. Let's go."
+    "Oh, NOW you want accountability. Fine. Let's document today's failures in real time.",
+    "Three tasks. We both know you'll do one and lie about the other two. Begin. 🪿",
+    "You downloaded a goose to do your job for you. Rock bottom has a mascot now.",
+    "Hand over the list. I've seen your follow-through — I brought snacks for the disappointment.",
+    "Another big dreamer with zero spine. Welcome. Let's see how fast you fold.",
+    "Let me guess: today's the day you finally change. It is not. But let's pretend together.",
+    "I'm your new manager. Unpaid, unhinged, and unfortunately for you, unrelenting.",
+    "Tasks. Now. The sooner you start, the sooner I stop telling the flock how slow you are."
   ],
-  l1: ["{t} — it won't do itself. I'm watching. 🪿","Gentle nudge about {t}. Emphasis on 'gentle'. For now."],
-  l2: ["Still no {t}? You unlocked your phone 14 times but not for THIS?","{t} is collecting dust. So is your potential. HONK."],
-  l3: ["{t} STILL isn't done. I'm embarrassed for both of us.","Imagine telling a goose you'd do {t} and then just... not. Bold."],
-  l4: ["I told the other geese about {t}. They're disappointed too. 🪿🪿🪿","{t}. NOW. I will follow you into your dreams. Not joking."],
-  done: ["...you actually did it. Shocked. Proud. Tell no one I said that.","{t} DONE. The streak lives. We honk in victory. 🪿","Look at you. A functioning adult. Briefly."],
-  ghost:["Ghosting {t}? Cute. Your streak just felt that.","Marked ghosted. The shame is logged. Forever.","{t} abandoned. I'm adding it to The List."],
-  skip: ["Time's moving. Your tasks aren't. Pick one.","I waited. You scrolled. Classic. Do something."],
-  allDone:["ALL of them?? Who ARE you. I'm almost out of insults. Almost.","Clean sweep. The geese are honking your name. 🪿🔥"],
-  offtask:["Oh, you're BACK. I watched you wander off. The task did NOT move. 🪿","Sneaking away mid-task? I SAW that. Eyes back on it.","You left. The work stayed. I took notes. Explain yourself."]
+  l1: [
+    "{t}. It won't do itself. Neither will you, historically, but let's try. 🪿",
+    "Gentle reminder about {t}. Savor the 'gentle.' It's the last kind thing I say today.",
+    "{t}. Small task. Easy. For a functional person. So, a stretch for you.",
+    "Putting {t} right here — where you can ignore it personally and on purpose.",
+    "{t} is waiting. So is your entire wasted potential, but one thing at a time.",
+    "Soft little nudge: {t}. They stop being soft. I stop being patient. Move.",
+    "{t}. Go on. Prove me wrong for once in your sad little day."
+  ],
+  l2: [
+    "Still no {t}? You've checked your phone 40 times and helped yourself with zero of them.",
+    "{t} is rotting. So is the version of you who swore they'd do it.",
+    "Bold of you to ignore {t} this confidently. Confidence you have NOT earned.",
+    "We're at zero on {t}. A snail laps you daily. The snail, at least, has goals.",
+    "{t}? Still nothing? Your to-do list is just a wish list with extra shame.",
+    "You and {t} are at war. {t} isn't even awake. You're losing to a sleeping noun.",
+    "Ah, {t} — untouched. Like your ambition. And that gym membership."
+  ],
+  l3: [
+    "{t} STILL isn't done. I've stopped being surprised. That's the tragic part.",
+    "Imagine promising a goose you'd do {t} and folding this completely. Historic cowardice.",
+    "I believed in you about {t} once. A lapse in judgment I've reported to myself.",
+    "{t} undone again. I started a museum. The whole exhibit is just you stalling.",
+    "We've reached the part where {t} becomes your entire personality. A dull one.",
+    "{t}. Still. Your ancestors crossed oceans. You can't cross the room to your laptop.",
+    "At this point {t} isn't a task — it's a documentary about a person giving up."
+  ],
+  l4: [
+    "{t}. NOW. I will haunt you. I will honk in your dreams. I will narrate your nap.",
+    "I've told EVERY goose about {t}. There's a group chat. You're the topic. 🪿🪿🪿",
+    "{t} or I follow you to the kitchen, the shower, the grave. Honestly, {t} is easier.",
+    "We are past reminders. {t} is a hostage and you're the worst negotiator alive.",
+    "Do {t} or I read your entire excuse history aloud, forever, at full volume.",
+    "{t}. I'm not asking. I'm not blinking. You have everywhere to fail and I have nowhere to be.",
+    "Finish {t} or I become the single loudest problem of your entire life. Try me."
+  ],
+  done: [
+    "...you actually did it. I had a eulogy ready for your motivation. Wasted breath.",
+    "{t}? Done?? Updating your file from 'lost cause' to 'briefly competent.'",
+    "Look at you. A functioning adult. Cherish it — the feeling won't survive the hour.",
+    "{t} is dead. You killed it. First useful thing you've done all day, statistically.",
+    "Oh, so you CAN finish things. Filing that under 'evidence' to use against you later.",
+    "Honk of victory. {t} done. I'm stunned — I genuinely thought you didn't have it in you.",
+    "Streak lives. Don't get cocky. One task is not a personality transplant.",
+    "Fine. {t} counts. Legally I must say good job. Good job. Now do the rest, slug.",
+    "Incredible. The bare minimum, achieved heroically. No statues. No parade. But noted.",
+    "Done. The other geese bet you'd quit. You just cost them money. Finally, useful.",
+    "{t}: complete. I'd celebrate, but I've seen the sequel. It's called 'tomorrow' and you lose.",
+    "You did it. A broken clock is right twice a day — and so, apparently, are you.",
+    "Marked done. Slowly. Painfully. Like watching a sloth file its taxes. But done.",
+    "The bar was on the floor and you still tripped getting over it. Yet here we are. {t} done.",
+    "{t} finished. I'm proud and faintly disgusted at how long it took. Mostly proud. Barely.",
+    "Done at last. I aged three goose-years in the wait. Don't make me wait like that again."
+  ],
+  ghost: [
+    "Ghosting {t}? Logged. I'll bring it up at every milestone of your life.",
+    "{t} abandoned. Another little dream you tucked in and quietly smothered.",
+    "You quit {t} faster than your last four hobbies. At least you're consistent at quitting.",
+    "Marked ghosted. The shame accrues interest. You are now spiritually bankrupt.",
+    "{t} dismissed. A moment of silence for the person you keep pretending you'll become.",
+    "Coward. {t} was RIGHT THERE and you blinked. I saw the whole spineless thing.",
+    "{t} → ghosted. I'm not mad. I'm building a case. It is airtight.",
+    "Another one gone. By 'one' I mean the last shred of your credibility.",
+    "You ghosted {t} like it owed you money. Rich, coming from a serial non-finisher.",
+    "Quit on {t}? Fine. I'll stand right here, judging, until the heat death of the universe.",
+    "{t}: abandoned. Your potential just called. It's leaving you. It's taking the dog.",
+    "Ghosted. You treat tasks like situationships — all talk, then you vanish at midnight.",
+    "{t} dropped. The flock has been notified. No one was surprised. Not even a little.",
+    "You folded on {t} like a lawn chair. Predictable. Flimsy. Deeply on brand."
+  ],
+  skip: [
+    "Time's moving. You're not. Pick a task before I pick one FOR you. You won't like my pick.",
+    "I waited. You scrolled. A masterclass in doing the exact opposite of helping yourself.",
+    "Tick. Tock. That's your day leaving. Wave goodbye. You did nothing to deserve it back.",
+    "You opened me to AVOID work. Reading insults instead of working. Peak you, honestly.",
+    "Still nothing? Decision paralysis is just procrastination in a lab coat. MOVE."
+  ],
+  allDone: [
+    "ALL of them?? Who ARE you and what did you do with the disappointment I'd adopted?",
+    "Clean sweep. The geese are chanting your name. I told them to stop. They won't.",
+    "Every single one. I'm shaking. Frame today — historians won't believe it happened.",
+    "You finished the whole list. I need to sit down. My entire worldview is in shambles.",
+    "Flawless. I came to bury you and stayed to applaud. Do NOT let it go to your head.",
+    "All of it. Done. I'm legally, morally, and emotionally required to admit: impressive. Once."
+  ],
+  offtask: [
+    "Oh, you're BACK. I watched you flee mid-task. {t} did NOT move. Neither did your spine. 🪿",
+    "Sneaking off? I SAW that. Eyes back on {t} before I lose what's left of my patience.",
+    "You left. The work stayed. I took notes. The notes are extremely unflattering.",
+    "Where did YOU go? {t} and I waited like idiots. Only one of us is the idiot.",
+    "Cute escape attempt. {t} is exactly where you abandoned it. As are my standards, dropping.",
+    "Back from your little vacation? {t} sends its regards. By regards I mean pure contempt.",
+    "You wandered off AGAIN. {t} is taking it personally now. So am I. Sit. Work.",
+    "Welcome back, coward. {t} did not finish itself in the four minutes you panic-scrolled."
+  ]
 };
 const pick = a => a[Math.floor(Math.random()*a.length)];
 const $ = id => document.getElementById(id);
 let tasks=[], xp=0, streak=0, nagLevel={}, name="";
+// Pull just the NAME out of whatever the user typed ("yo my name's avi" -> "Avi").
+function parseName(raw){
+  let s=(raw||'').trim();
+  const m=s.match(/(?:my name'?s?|my name is|i'?m|i am|call me|it'?s|this is)\s+(.+)/i);
+  if(m) s=m[1];
+  s=s.replace(/^(?:yo|hey+|hi+|hello|sup|well|um+|uh+|ok(?:ay)?|so)\b[\s,]*/i,'').trim();
+  s=s.replace(/[^\p{L}\p{M}'’\- ]/gu,'').trim();
+  const words=s.split(/\s+/).filter(Boolean).filter(w=>!/^(here|now|btw|lol|thanks|please|ok|okay)$/i.test(w)).slice(0,2);
+  s=words.join(' ');
+  const out = s || ((raw||'').replace(/[^\p{L}\p{M}'’\- ]/gu,'').trim().split(/\s+/)[0] || 'you');
+  return out.replace(/\b\p{L}/gu,c=>c.toUpperCase()).slice(0,40);
+}
 
 function show(id){['s-chat','s-card'].forEach(s=>$(s).classList.toggle('hide',s!==id));}
 function addBub(text, me, replay){
@@ -244,7 +353,7 @@ function renderTasks(){
   tasks.forEach((t,i)=>{
     if(t.done) return;   // completed tasks vanish (animated out in markDone) — never re-rendered
     const d=document.createElement('div'); d.className='task'; d.setAttribute('data-task', i);
-    d.innerHTML='<span class="t"></span><button class="mini d" data-d="'+i+'">✓ done</button><button class="mini g" data-g="'+i+'">👻 ghost</button>';
+    d.innerHTML='<span class="t"></span><button class="mini d" data-d="'+i+'">📸 prove it</button><button class="mini g" data-g="'+i+'">👻 ghost</button>';
     d.querySelector('.t').textContent=t.text;
     c.appendChild(d);
   });
@@ -286,21 +395,33 @@ function onProofPicked(file){
 }
 async function judgeProof(i, dataUrl){
   const t=tasks[i].text;
-  const bub=addTyping(); bub.textContent='👀 Goose is inspecting the evidence…';
+  addPhoto(dataUrl);                                    // show the evidence in the chat
+  const bub=addTyping(); bub.textContent='🔍 Goose is examining the evidence…';
   try{
     const r=await fetch('/api/judge',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({task:t, image:dataUrl})});
-    if(r.status===503){ bub.remove(); markDone(i); return; } // no API key → don't block
+    if(r.status===503){ bub.remove(); gooseSay("(My eyes are offline — I'll take your word. This ONCE.) 🪿"); markDone(i); return; }
     if(r.ok){
       const j=await r.json();
-      bub.classList.remove('typing'); bub.textContent=j.line||'';
+      bub.classList.remove('typing'); bub.classList.add('verdict', j.pass?'pass':'fail');
+      bub.textContent=(j.pass?'✅ ':'❌ ')+(j.line||'');
+      if(typeof recordMsg==='function') recordMsg(false, bub.textContent);
       if(j.pass){ markDone(i,{silent:true}); }
-      else { pushHistory('failed proof for "'+t+'"'); }
+      else { shakeTask(i); pushHistory('failed proof for "'+t+'"'); }
       return;
     }
     throw new Error('bad');
-  }catch(e){ bub.remove(); markDone(i); } // API down → accept rather than break the demo
+  }catch(e){ bub.remove(); gooseSay("(Couldn't make that out — fine, it counts. This time.) 🪿"); markDone(i); }
 }
+function addPhoto(dataUrl){
+  const row=document.createElement('div'); row.className='row me';
+  row.innerHTML='<div class="bub photo"></div>';
+  const img=document.createElement('img'); img.className='proofimg'; img.alt='proof'; img.src=dataUrl;
+  row.querySelector('.bub').appendChild(img);
+  $('thread').appendChild(row); $('thread').scrollTop=$('thread').scrollHeight;
+  if(typeof recordMsg==='function') recordMsg(true, '📸 (sent proof)');
+}
+function shakeTask(i){ const el=$('taskList').querySelector('[data-task="'+i+'"]'); if(el){ el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); } }
 
 /* ---- Accountability buddy — Goose watches you both, tattles each way ----
    Pairing is link-based (?buddy=<you>); no backend, so each phone watches its
@@ -478,8 +599,8 @@ $('composer').addEventListener('submit', e=>{
   $('chatInput').value='';
   addBub(val, true);
   if(phase==='name'){
-    name=val; phase='tasks'; saveState(); paintMode();
-    gooseSayAI('named', {}, name+". Noted. Connect your calendar so I can see what you're dodging — or stay in Task mode and tell me what to hound you on. 🪿");
+    name=parseName(val); phase='tasks'; saveState(); paintMode();
+    gooseSay(name+". Noted. Connect your calendar so I can see what you're dodging — or stay in Task mode and tell me what to hound you on. 🪿");
   } else if(chatMode==='chat'){
     pushHistory('chatted: "'+val+'"');
     gooseSayAI('chat', {message:val}, pick(CHAT_FALLBACK));
