@@ -272,6 +272,18 @@ async function tattleMessage(friend){
   }catch(e){/* offline → keep fallback */}
   return line+'\n\n'+tattleLink();
 }
+/* opt-in auto-tattle: Goose alerts a saved buddy whenever you procrastinate.
+   NOTE: a PWA can't silently send for you — this opens the pre-filled message;
+   you tap send. Truly-silent delivery + a persistent friend opt-out need the
+   Telegram-bot backend (next step). */
+function getBuddy(){ try{ return JSON.parse(localStorage.getItem('goose-buddy')||'null'); }catch(e){ return null; } }
+function setBuddy(b){ try{ b?localStorage.setItem('goose-buddy',JSON.stringify(b)):localStorage.removeItem('goose-buddy'); }catch(e){} }
+async function autoTattle(task){
+  const b=getBuddy(); if(!b||!b.auto||!b.name) return;
+  gooseSay('Auto-tattling to '+b.name+'… you brought this on yourself. 🪿');
+  const msg=await tattleMessage(b.name);
+  setTimeout(()=>window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank'),600);
+}
 function tattle(){
   const ov=document.createElement('div'); ov.id='tattleModal';
   ov.style.cssText='position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px';
