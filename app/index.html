@@ -312,13 +312,10 @@ function buddyInvite(){
    Telegram-bot backend (next step). */
 function getBuddy(){ try{ return JSON.parse(localStorage.getItem('goose-buddy')||'null'); }catch(e){ return null; } }
 function setBuddy(b){ try{ b?localStorage.setItem('goose-buddy',JSON.stringify(b)):localStorage.removeItem('goose-buddy'); }catch(e){} }
-// wa.me/<number> opens the buddy's chat DIRECTLY (message prefilled, one tap to send).
-// With a number it's instant-to-them; without, WhatsApp asks which chat.
-function buddyWa(text){ const b=getBuddy(); const p=(b&&b.phone)?b.phone:''; return 'https://wa.me/'+p+'?text='+encodeURIComponent(text); }
 function autoTattle(task){
   const b=getBuddy(); if(!b||!b.auto||!b.name) return;
-  gooseSay('📲 Pinging '+b.name+' on WhatsApp — you ghosted "'+task+'". You signed up for this. 🪿');
-  setTimeout(()=>window.open(buddyWa(buddyAlert(task)),'_blank'),600);
+  gooseSay('Telling '+b.name+' you ghosted "'+task+'"… you signed up for this. 🪿');
+  setTimeout(()=>window.open('https://wa.me/?text='+encodeURIComponent(buddyAlert(task)),'_blank'),600);
 }
 function tattle(){
   const ov=document.createElement('div'); ov.id='tattleModal';
@@ -327,9 +324,7 @@ function tattle(){
     '<div style="background:var(--card);color:var(--ink);max-width:380px;width:100%;border-radius:22px;padding:18px;box-shadow:var(--shadow)">'+
       '<h3 style="font-family:\'Baloo 2\';margin:0 0 4px;font-size:20px">👯 Accountability buddy</h3>'+
       '<p style="margin:0 0 10px;font-size:13px;color:var(--muted);font-weight:700">Pair up — Goose watches you both. Ghost a task and your buddy gets the alert. 🪿</p>'+
-      '<input id="tattleName" placeholder="buddy’s name" autocomplete="off" style="width:100%;height:46px;padding:0 14px;font-size:16px;font-family:Nunito;font-weight:700;border:2.5px solid #ECE6D8;border-radius:14px;outline:none;margin-bottom:8px;background:var(--bg);color:var(--ink)" />'+
-      '<input id="tattlePhone" type="tel" inputmode="tel" placeholder="WhatsApp number (with country code, e.g. 447911123456)" autocomplete="off" style="width:100%;height:46px;padding:0 14px;font-size:15px;font-family:Nunito;font-weight:700;border:2.5px solid #ECE6D8;border-radius:14px;outline:none;margin-bottom:6px;background:var(--bg);color:var(--ink)" />'+
-      '<p style="margin:0 0 10px;font-size:11.5px;color:var(--muted);font-weight:700">📲 With a number, alerts open their WhatsApp chat instantly. No number = you pick the chat.</p>'+
+      '<input id="tattleName" placeholder="buddy’s name" autocomplete="off" style="width:100%;height:46px;padding:0 14px;font-size:16px;font-family:Nunito;font-weight:700;border:2.5px solid #ECE6D8;border-radius:14px;outline:none;margin-bottom:10px;background:var(--bg);color:var(--ink)" />'+
       '<label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--ink);margin:0 0 10px;cursor:pointer"><input type="checkbox" id="tattleAuto" style="width:18px;height:18px;accent-color:var(--coral)" />🔁 Auto-alert my buddy every time I ghost a task</label>'+
       '<div id="tattlePreview" style="background:var(--bubble);border-radius:14px;padding:12px;font-size:14px;font-weight:600;line-height:1.4;min-height:64px;white-space:pre-wrap;margin-bottom:12px">…</div>'+
       '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
@@ -343,14 +338,13 @@ function tattle(){
   const close=()=>ov.remove();
   $('tClose').onclick=close; ov.onclick=e=>{ if(e.target===ov) close(); };
   function preview(){ $('tattlePreview').textContent=buddyInvite(); }
-  function savePref(){ const f=$('tattleName').value.trim(); const phone=($('tattlePhone').value||'').replace(/[^0-9]/g,''); const auto=$('tattleAuto').checked; if(f) setBuddy({name:f,phone:phone,auto:auto}); else setBuddy(null); }
-  const saved=getBuddy(); if(saved){ $('tattleName').value=saved.name||''; $('tattlePhone').value=saved.phone||''; $('tattleAuto').checked=!!saved.auto; }
+  function savePref(){ const f=$('tattleName').value.trim(); const auto=$('tattleAuto').checked; if(f) setBuddy({name:f,auto:auto}); else setBuddy(null); }
+  const saved=getBuddy(); if(saved){ $('tattleName').value=saved.name||''; $('tattleAuto').checked=!!saved.auto; }
   preview();
   $('tattleName').addEventListener('input',()=>{ savePref(); preview(); });
-  $('tattlePhone').addEventListener('input',savePref);
   $('tattleAuto').addEventListener('change',savePref);
   function paired(){ const f=$('tattleName').value.trim(); close(); if(f) gooseSay('You and '+f+' are paired. I\'m watching you both now — ghost a task and '+f+' hears about it. 🪿'); }
-  $('tInvite').onclick=()=>{ savePref(); window.open(buddyWa(buddyInvite()),'_blank'); paired(); };
+  $('tInvite').onclick=()=>{ savePref(); window.open('https://wa.me/?text='+encodeURIComponent(buddyInvite()),'_blank'); paired(); };
   $('tShare').onclick=()=>{ savePref(); if(navigator.share){ navigator.share({text:buddyInvite()}).then(paired).catch(()=>{}); } else { try{navigator.clipboard.writeText(buddyInvite());}catch(e){} paired(); } };
   $('tCopy').onclick=()=>{ savePref(); try{navigator.clipboard.writeText(buddyInvite());}catch(e){} $('tCopy').textContent='Copied ✓'; };
 }
