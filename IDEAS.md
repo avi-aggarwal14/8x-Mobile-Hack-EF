@@ -55,7 +55,7 @@ There's **one open track** and a fixed rubric (① Originality ② UI/UX ③ Exe
 - [x] Streak + done/ghost states with Goose reactions *(+ XP, levels, confetti)*
 - [x] Shareable Goose card (html2canvas + Web Share API) — ⚠️ still prints `goose-8x.vercel.app`, fix to `goose-lockin`
 - [~] Waitlist — ✅ email → Google Apps Script → Google Sheet; 🟡 phone capture in progress; ⬜ live counter + QR
-- [~] **Google Calendar API** — ✅ client-side read+write connector (`gcal.js`) + `/calendar.html` test page built & deployed; **blocked on** Avi's OAuth **Client ID** (see `CALENDAR_SETUP.md`) → then verify + fold into the flow
+- [~] **Google Calendar API** — ✅ client-side read+write connector + `/calendar.html` test page **live with Client ID wired in**; ⬜ Avi to verify connect/read/write, then fold into the Goose flow
 - [~] **UI/UX polish pass** — clean Baloo/Nunito UI shipped; keep refining (criterion ②)
 
 ## Demo script (~2–3 min — confirm limit)

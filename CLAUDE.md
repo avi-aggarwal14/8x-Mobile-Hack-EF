@@ -30,7 +30,7 @@
 - *(As-built note: vanilla HTML/JS static PWA, not the Next.js in §5 — fine for the window.)*
 
 **🟡 In progress:**
-- **Google Calendar API (two-way):** reads your real calendar/deadlines to nag you about them, **and** writes new tasks/reminders (with deadlines) back to your calendar to nag about later. = Goose's scheduling + awareness brain. — ✅ **client-side connector built + deployed** (GIS token model, read+write `calendar.events`, no backend/secret): `gcal.js` + `config.js` + a `/calendar.html` test page. **Blocked on:** Avi creating the OAuth **Client ID** in Google Cloud Console (`CALENDAR_SETUP.md`) → paste into `config.js`, then verify at `goose-lockin.vercel.app/calendar.html`.
+- **Google Calendar API (two-way):** reads your real calendar/deadlines to nag you about them, **and** writes new tasks/reminders (with deadlines) back to your calendar to nag about later. = Goose's scheduling + awareness brain. — ✅ **client-side connector built + deployed** (GIS token model, read+write `calendar.events`, no backend/secret): `gcal.js` + `config.js` + a `/calendar.html` test page. ✅ **Client ID wired in + deployed** (Google project Goose/`goose-499311`, Testing mode) → **ready to test** at `goose-lockin.vercel.app/calendar.html` (connect → reads today's events + drops a test event). **Next:** fold into the main Goose flow.
 - **Nag delivery model:** **Calendar decides *when* · a chat app (Telegram/WhatsApp) *delivers* the nag.** (The Claude Goose engine + chat delivery is the open build.)
 - **Waitlist → email + phone** (phone capture being added; needed so Goose can actually text you).
 - **Claude API → live, personalized nags** (replacing the canned strings).
