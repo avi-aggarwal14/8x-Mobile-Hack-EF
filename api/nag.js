@@ -36,8 +36,10 @@ Hard rules:
 - If a task suggests someone is genuinely struggling (therapy, grief, a medical thing, "call mum back", rest/self-care), drop the bit entirely and be warm, kind, and gentle instead.
 - Keep it PG-13.`;
 
-function buildInstruction(kind, task, nagLevel, awaySeconds, friend) {
+function buildInstruction(kind, task, nagLevel, awaySeconds, friend, message) {
   switch (kind) {
+    case 'chat':
+      return `The user is just CHATTING with you right now — NOT logging a task. They said: "${message}". Reply in character as Goose: banter, react, be funny and a little feral, and you may nudge them toward getting things done — but do NOT invent, assign, or pretend they set a task. One or two sentences, like a text.`;
     case 'tattle':
       return `Write a SHORT message the user will SEND to their friend "${friend}" to publicly (but lovingly) shame them for avoiding the task "${task}". Dramatic "goose intervention" energy — you are tattling on ${friend} to get them moving. Address ${friend} by name, funny and savage but never cruel, 1-2 sentences, ready to paste into a text. Do NOT include any URL or link — one is added automatically.`;
     case 'intro':
@@ -82,6 +84,7 @@ module.exports = async (req, res) => {
   const nagLevel = Math.max(1, Math.min(4, parseInt(body.nagLevel, 10) || 1));
   const awaySeconds = Math.max(0, parseInt(body.awaySeconds, 10) || 0);
   const friend = (body.friend || '').toString().slice(0, 60);
+  const message = (body.message || '').toString().slice(0, 500);
   const tasks = Array.isArray(body.tasks) ? body.tasks.slice(0, 10) : [];
   const history = Array.isArray(body.history) ? body.history.slice(-6) : [];
 
@@ -98,7 +101,7 @@ module.exports = async (req, res) => {
 ${taskLines}
 - Recent history: ${hist}
 
-${buildInstruction(kind, task, nagLevel, awaySeconds, friend)}`;
+${buildInstruction(kind, task, nagLevel, awaySeconds, friend, message)}`;
 
   try {
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {

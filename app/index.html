@@ -115,8 +115,13 @@
       <div class="thread" id="thread"></div>
       <div class="tasks" id="taskList"></div>
 
-      <!-- chat composer: first message = your name, then each line = a task -->
-      <form id="composer" autocomplete="off" style="display:flex;gap:8px;margin-top:10px">
+      <!-- mode toggle: Task = Goose holds you accountable · Chat = just talk -->
+      <div id="modeToggle" style="display:flex;gap:6px;margin-top:10px;background:var(--bubble);border-radius:14px;padding:4px">
+        <button type="button" class="modebtn" data-mode="task" style="flex:1;border:none;border-radius:11px;padding:9px 6px;font-family:'Baloo 2';font-weight:800;font-size:13.5px;cursor:pointer;transition:all .12s">🎯 Task</button>
+        <button type="button" class="modebtn" data-mode="chat" style="flex:1;border:none;border-radius:11px;padding:9px 6px;font-family:'Baloo 2';font-weight:800;font-size:13.5px;cursor:pointer;transition:all .12s">💬 Chat</button>
+      </div>
+      <!-- composer: name first, then Task-mode logs an accountable task · Chat-mode just talks -->
+      <form id="composer" autocomplete="off" style="display:flex;gap:8px;margin-top:8px">
         <input id="chatInput" placeholder="Message Goose…" autocomplete="off" style="flex:1;min-width:0;height:50px;padding:0 16px;font-size:16px;font-family:Nunito;font-weight:700;color:var(--ink);background:var(--card);border:2.5px solid #ECE6D8;border-radius:16px;outline:none" />
         <button class="btn coral" id="send" type="submit" style="width:auto;padding:0 20px">➤</button>
       </form>
@@ -420,18 +425,38 @@ function importCalendar(items){
 }
 
 /* ---- chat composer: first message = your name, then each line = a task ---- */
+/* ---- mode toggle: Task (Goose holds you accountable) vs Chat (just talk) ---- */
+let chatMode = (function(){ try{ return localStorage.getItem('goose-mode')==='chat' ? 'chat' : 'task'; }catch(e){ return 'task'; } })();
+const CHAT_FALLBACK=["Mm-hm. Fascinating. Now go do something about it. 🪿","I'm listening. Also still watching. Both at once. 🪿","Noted. This isn't therapy — but go on. 🪿","Cute story. Want to make that a task, or are we just venting? 🪿"];
+function paintMode(){
+  var nodes=document.querySelectorAll('.modebtn');
+  for(var k=0;k<nodes.length;k++){ var b=nodes[k], on=b.dataset.mode===chatMode;
+    b.style.background = on ? 'var(--amber)' : 'transparent';
+    b.style.color = on ? '#fff' : 'var(--muted)';
+    b.style.boxShadow = on ? 'var(--shadow)' : 'none';
+  }
+  var ci=$('chatInput');
+  if(ci && phase!=='name') ci.placeholder = (chatMode==='task') ? 'Add a task for Goose to hound you on…' : 'Just chatting with Goose…';
+}
+function setMode(m){ chatMode = (m==='chat') ? 'chat' : 'task'; try{ localStorage.setItem('goose-mode', chatMode); }catch(e){} paintMode(); }
+
 $('composer').addEventListener('submit', e=>{
   e.preventDefault();
   const val=$('chatInput').value.trim(); if(!val) return;
   $('chatInput').value='';
   addBub(val, true);
   if(phase==='name'){
-    name=val; phase='tasks'; $('chatInput').placeholder='Tell Goose a task…'; saveState();
-    gooseSayAI('named', {}, name+". Noted. Connect your calendar so I can see what you're dodging — or just type a task and I'll start hunting. 🪿");
+    name=val; phase='tasks'; saveState(); paintMode();
+    gooseSayAI('named', {}, name+". Noted. Connect your calendar so I can see what you're dodging — or stay in Task mode and tell me what to hound you on. 🪿");
+  } else if(chatMode==='chat'){
+    pushHistory('chatted: "'+val+'"');
+    gooseSayAI('chat', {message:val}, pick(CHAT_FALLBACK));
   } else {
     if(!addTask(val, {nag:true})) gooseSayAI('dupe', {task:val}, "You already told me that one. I don't forget anymore. 🪿");
   }
 });
+document.querySelectorAll('.modebtn').forEach(function(b){ b.addEventListener('click', function(){ setMode(b.dataset.mode); }); });
+paintMode();
 
 /* ---- boot: open straight into the chat; remember everything from last time ---- */
 function boot(){
@@ -446,6 +471,7 @@ function boot(){
     renderTasks();
     gooseSayAI('askname', {}, 'Oh good, a volunteer. What do I call you? I need a name to scream when you start slacking. 🪿');
   }
+  if(typeof paintMode==='function') paintMode();
   saveState();
 }
 boot();

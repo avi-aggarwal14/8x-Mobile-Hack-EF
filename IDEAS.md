@@ -52,7 +52,7 @@ There's **one open track** and a fixed rubric (① Originality ② UI/UX ③ Exe
 ## Build checklist (speed-first)
 - [x] **PWA → Vercel** — live at goose-lockin.vercel.app *(as-built: static HTML/JS, not Next.js)*
 - [x] **Goose persona prompt** (Claude) — ✅ wired via server-side `/api/nag` (Haiku 4.5); generates intro/nags/done/ghost/all-done in character; canned strings now the offline fallback. *(Needs `ANTHROPIC_API_KEY` set in Vercel.)*
-- [x] **Chat-first entry** — `/app` opens straight into the goose chat; Goose asks your name in-chat, then a chat box for one-off tasks *(old 3-task setup screen removed)*
+- [x] **Chat-first entry + Task/Chat toggle** — `/app` opens into the goose chat (asks your name); a **[ 🎯 Task | 💬 Chat ]** switch flips between logging accountable tasks and just talking to Goose *(old 3-task setup screen removed; chat replies via `/api/nag` `chat` kind)*
 - [x] **Remembers across closes** — name, tasks, streak & full chat saved to `localStorage`, restored on reopen *(same device; cross-device = accounts, later)*
 - [~] Nudge delivery — **Calendar schedules → chat app (Telegram/WhatsApp) delivers**; ✅ in-app goose chat works as the demo fallback
 - [x] **Off-task callout (focus-watch + push)** — Page Visibility detects leaving Goose mid-task → Claude roast on return (`offtask`) **and a real push notification to your phone while you're away** (`/api/push`, Web Push + VAPID). ⚠️ Needs `VAPID_*` env vars in Vercel; iOS needs the installed PWA.
