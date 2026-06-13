@@ -8,6 +8,13 @@
 <meta property="og:title" content="Goose — your accountability goose" />
 <meta property="og:description" content="Tell Goose your top tasks. It texts you until they're done. No download." />
 <meta property="og:type" content="website" />
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#F2A03D" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Goose" />
+<link rel="apple-touch-icon" href="/icon.svg" />
 <style>
   :root{
     --bg:#FBF7EF; --card:#FFFFFF; --ink:#2C2C2A; --muted:#6B6A64;
@@ -99,6 +106,9 @@
     <div class="step"><div class="num">3</div><p>Build a streak you can't break</p></div>
   </div>
 
+  <button id="installBtn" style="display:none;width:100%;margin-top:20px;height:50px;border:none;border-radius:14px;background:#2A2A28;color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer">📲 Install Goose as an app</button>
+  <div id="installHint" style="display:none;margin-top:10px;background:var(--disc);border-radius:14px;padding:12px;font-size:13.5px;line-height:1.5;color:var(--ink)"></div>
+
   <p class="foot">Not your therapist. Your accountability goose.</p>
 </div>
 
@@ -123,6 +133,31 @@
     document.querySelector('.note').style.display = 'none';
     document.getElementById('ok').style.display = 'block';
   });
+
+  var deferredPrompt = null;
+  var installBtn = document.getElementById('installBtn');
+  var installHint = document.getElementById('installHint');
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferredPrompt = e; });
+  if (installBtn && !standalone){
+    installBtn.style.display = 'block';
+    installBtn.addEventListener('click', async function(){
+      if (deferredPrompt){
+        deferredPrompt.prompt();
+        var r = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        if (r && r.outcome === 'accepted') installBtn.style.display = 'none';
+      } else if (isIOS){
+        installHint.innerHTML = 'On iPhone: tap the <b>Share</b> button at the bottom of Safari, then <b>“Add to Home Screen.”</b> 🪿';
+        installHint.style.display = 'block';
+      } else {
+        installHint.innerHTML = 'Open your browser menu (or the install icon in the address bar) and choose <b>“Install Goose.”</b> 🪿';
+        installHint.style.display = 'block';
+      }
+    });
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(function(){});
 </script>
 </body>
 </html>

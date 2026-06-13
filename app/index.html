@@ -88,6 +88,8 @@
     <div class="field"><label>task 3</label><input class="inp t-in" placeholder="Go to the gym" /></div>
     <div style="height:8px"></div>
     <button class="btn coral" id="go">Sic the goose on me →</button>
+    <button class="btn" id="installBtn" style="display:none;margin-top:10px;background:#2A2A28">📲 Install Goose</button>
+    <div id="installHint" style="display:none;margin-top:10px;background:var(--card);border-radius:14px;padding:12px;font-size:13px;line-height:1.5;color:var(--ink);box-shadow:var(--shadow)"></div>
   </section>
 
   <!-- CHAT -->
@@ -231,6 +233,19 @@ $('share').onclick=async()=>{
     if(navigator.share) navigator.share({text:'I survived Goose today 🪿 goose-8x.vercel.app'});
   }
 };
+let deferredPrompt=null;
+const installBtn=$('installBtn'), installHint=$('installHint');
+const standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});
+if(installBtn && !standalone){
+  installBtn.style.display='block';
+  installBtn.addEventListener('click',async()=>{
+    if(deferredPrompt){deferredPrompt.prompt();const r=await deferredPrompt.userChoice;deferredPrompt=null;if(r&&r.outcome==='accepted')installBtn.style.display='none';}
+    else if(isIOS){installHint.innerHTML='On iPhone: tap <b>Share</b> at the bottom of Safari, then <b>“Add to Home Screen.”</b> 🪿';installHint.style.display='block';}
+    else{installHint.innerHTML='Use your browser menu or the install icon in the address bar → <b>“Install Goose.”</b> 🪿';installHint.style.display='block';}
+  });
+}
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
 </script>
 </body>

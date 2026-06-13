@@ -1,1 +1,13 @@
 .vercel
+
+# Secrets / env — never commit
+.env
+.env.*
+!.env.example
+
+# Node / build
+node_modules/
+.next/
+dist/
+.DS_Store
+*.log
