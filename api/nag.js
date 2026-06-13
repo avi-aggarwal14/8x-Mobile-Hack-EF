@@ -36,7 +36,7 @@ Hard rules:
 - If a task suggests someone is genuinely struggling (therapy, grief, a medical thing, "call mum back", rest/self-care), drop the bit entirely and be warm, kind, and gentle instead.
 - Keep it PG-13.`;
 
-function buildInstruction(kind, task, nagLevel) {
+function buildInstruction(kind, task, nagLevel, awaySeconds) {
   switch (kind) {
     case 'intro':
       return `The user just handed you their tasks and set you loose. Greet them in character, react to their ACTUAL tasks listed above, and make it clear the nagging has officially begun.`;
@@ -46,6 +46,8 @@ function buildInstruction(kind, task, nagLevel) {
       return `They just GHOSTED (gave up on / dismissed) this task: "${task}". React with theatrical betrayal and log it as a crime, but keep it funny — never genuinely mean.`;
     case 'allDone':
       return `They have now finished EVERY task on the list. Completely lose your mind with pride and disbelief, in character.`;
+    case 'offtask':
+      return `They were supposed to be working, but they just LEFT the app for about ${awaySeconds} seconds with this task still unfinished: "${task}". They have only now come back. Catch them red-handed and herd them back to work, in character. Scale your intensity to how long they were gone — a quick peek earns a mild side-eye; a long disappearance earns a full theatrical meltdown.`;
     case 'nag':
     default:
       return `Nag them about this specific task: "${task}". Escalation level ${nagLevel} of 4. It is NOT done yet. Reference the task and, if it fits, the current time.`;
@@ -76,6 +78,7 @@ module.exports = async (req, res) => {
   const time = (body.time || '').toString().slice(0, 20);
   const task = (body.task || '').toString().slice(0, 200);
   const nagLevel = Math.max(1, Math.min(4, parseInt(body.nagLevel, 10) || 1));
+  const awaySeconds = Math.max(0, parseInt(body.awaySeconds, 10) || 0);
   const tasks = Array.isArray(body.tasks) ? body.tasks.slice(0, 10) : [];
   const history = Array.isArray(body.history) ? body.history.slice(-6) : [];
 
@@ -92,7 +95,7 @@ module.exports = async (req, res) => {
 ${taskLines}
 - Recent history: ${hist}
 
-${buildInstruction(kind, task, nagLevel)}`;
+${buildInstruction(kind, task, nagLevel, awaySeconds)}`;
 
   try {
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {

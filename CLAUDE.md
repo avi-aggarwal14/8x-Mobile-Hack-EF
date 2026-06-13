@@ -26,6 +26,7 @@
 **Shipped & live:**
 - **Landing page** (`/`) — email waitlist → **Google Apps Script → Google Sheet** (collecting signups now); rotating nag samples; PWA install.
 - **Interactive app** (`/app`) — name + top-3 tasks → a goose "chat" that nags with escalating intensity, done/ghost/skip, XP·levels·streak·confetti, and a **shareable Goose card** (html2canvas + Web Share). ✅ Nags now come from **Claude via `/api/nag`** (server-side; canned strings as offline fallback).
+- **Focus-watch (off-task callout)** — the goose notices when you *leave the app mid-task* (Page Visibility API) and roasts you on return, scaled to how long you were gone (`kind:'offtask'` → `/api/nag`). PWA limit: it knows *that* you left, not which app you opened (true OS screen-time = native only).
 - **PWA** — manifest, service worker, icon, install prompts, **browser-tab favicon** (SVG `icon.svg`, on both `/` and `/app`).
 - *(As-built note: vanilla HTML/JS static PWA, not the Next.js in §5 — fine for the window.)*
 

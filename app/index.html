@@ -159,7 +159,8 @@ const NAG = {
   done: ["...you actually did it. Shocked. Proud. Tell no one I said that.","{t} DONE. The streak lives. We honk in victory. 🪿","Look at you. A functioning adult. Briefly."],
   ghost:["Ghosting {t}? Cute. Your streak just felt that.","Marked ghosted. The shame is logged. Forever.","{t} abandoned. I'm adding it to The List."],
   skip: ["Time's moving. Your tasks aren't. Pick one.","I waited. You scrolled. Classic. Do something."],
-  allDone:["ALL of them?? Who ARE you. I'm almost out of insults. Almost.","Clean sweep. The geese are honking your name. 🪿🔥"]
+  allDone:["ALL of them?? Who ARE you. I'm almost out of insults. Almost.","Clean sweep. The geese are honking your name. 🪿🔥"],
+  offtask:["Oh, you're BACK. I watched you wander off. The task did NOT move. 🪿","Sneaking away mid-task? I SAW that. Eyes back on it.","You left. The work stayed. I took notes. Explain yourself."]
 };
 const pick = a => a[Math.floor(Math.random()*a.length)];
 const $ = id => document.getElementById(id);
@@ -355,6 +356,24 @@ if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').cat
     setIcon();
   });
 })();
+
+/* ---- Focus watch: catch them bailing out of Goose mid-task ---- */
+const AWAY_TROLL_MS=12000; // gone longer than this (ms) → goose calls you out on return. Low for demos; bump up for real use.
+let hiddenAt=null;
+function chatActive(){ return !$('s-chat').classList.contains('hide') && tasks.some(t=>!t.done); }
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    hiddenAt = chatActive() ? Date.now() : null;          // only start the clock if you're mid-session with work left
+  } else if(hiddenAt){
+    const awayMs=Date.now()-hiddenAt; hiddenAt=null;       // Date.now() = true wall-clock, accurate even if the OS paused our JS
+    if(awayMs>=AWAY_TROLL_MS && chatActive()){
+      const sec=Math.round(awayMs/1000);
+      const t=(tasks.find(x=>!x.done)||{}).text||'';
+      pushHistory('left the app for '+sec+'s while "'+t+'" was unfinished');
+      gooseSayAI('offtask', {task:t, awaySeconds:sec}, pick(NAG.offtask));
+    }
+  }
+});
 </script>
 
 <!-- Google Calendar connect (client-side, PUBLIC Client ID; see config.js / CALENDAR_SETUP.md) -->
