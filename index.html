@@ -141,8 +141,14 @@
   (function(){
     try{
       var q=new URLSearchParams(location.search);
-      var from=q.get('from'), stop=q.get('stop');
+      var from=q.get('from'), stop=q.get('stop'), buddy=q.get('buddy');
       var h=document.getElementById('hero'), s=document.getElementById('heroSub');
+      if(buddy){
+        buddy=buddy.slice(0,40).replace(/</g,'');
+        if(h) h.textContent='👯 '+buddy+' wants you as their accountability buddy.';
+        if(s) s.innerHTML='Goose will watch you both — and tattle when either of you slacks. Join '+buddy+', then add them back as your buddy.<br><a href="/app" style="color:var(--amber-dark);font-weight:700">Open Goose →</a>';
+        return;
+      }
       if(stop){
         try{localStorage.setItem('goose-optout','1');}catch(e){}
         if(h) h.textContent='🔕 Goose will back off.';

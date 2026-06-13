@@ -129,7 +129,7 @@
       <div class="tools-grid">
         <button class="tool" id="calConnect">🗓️ Calendar</button>
         <button class="tool" id="toCard">📸 Share card</button>
-        <button class="tool" id="tattleLink">🚨 Tattle</button>
+        <button class="tool" id="tattleLink">👯 Buddy</button>
         <button class="tool" id="pushBtn">🔔 Notify me</button>
         <button class="tool wide" id="installBtn" style="display:none">📲 Install Goose</button>
       </div>
@@ -286,20 +286,20 @@ async function judgeProof(i, dataUrl){
   }catch(e){ bub.remove(); markDone(i); } // API down → accept rather than break the demo
 }
 
-/* ---- Goose tattles to your friends — AI-written, referral-tracked growth loop ----
-   The shared link carries ?from=<you> so the friend lands on a personalized
-   page ("X sicced Goose on you"). That closes the loop + makes virality real. */
-function tattleLink(){ return 'https://goose-lockin.vercel.app/?from='+encodeURIComponent(name||'a friend'); }
-async function tattleMessage(friend){
-  const pending=tasks.filter(t=>!t.done);
-  const t=((pending[0]||tasks[0])||{}).text || 'their tasks';
-  let line='🪿 GOOSE INTERVENTION 🪿 '+friend+' is dramatically avoiding "'+t+'" and their streak is in shambles. Someone has to step in.';
-  try{
-    const r=await fetch(NAG_API,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({kind:'tattle', name, friend, task:t, tasks:taskSummary(), time:timeNow(), history})});
-    if(r.ok){ const j=await r.json(); if(j&&j.text) line=j.text.trim(); }
-  }catch(e){/* offline → keep fallback */}
-  return line+'\n\n'+tattleLink();
+/* ---- Accountability buddy — Goose watches you both, tattles each way ----
+   Pairing is link-based (?buddy=<you>); no backend, so each phone watches its
+   OWN user and alerts the buddy when that user ghosts. You pre-arm it when
+   motivated — you never volunteer your own failure in the moment. Symmetric. */
+function buddyInviteLink(){ return 'https://goose-lockin.vercel.app/?buddy='+encodeURIComponent(name||'a friend'); }
+// Sent TO your buddy when YOU ghost (you pre-armed this — not self-incrimination).
+function buddyAlert(task){
+  const me=name||'Your buddy';
+  return '🚨🪿 ACCOUNTABILITY ALERT: '+me+' just ghosted "'+task+'" on Goose. You\'re their buddy — permission to roast. (Goose made me send this.) '+buddyInviteLink();
+}
+// Invite a friend to pair up as mutual buddies.
+function buddyInvite(){
+  const me=name||'I';
+  return '👯🪿 '+me+' picked you as their Goose accountability buddy — it nags you both until your tasks are done and tattles when either of you slacks. Pair up: '+buddyInviteLink();
 }
 /* opt-in auto-tattle: Goose alerts a saved buddy whenever you procrastinate.
    NOTE: a PWA can't silently send for you — this opens the pre-filled message;
@@ -307,24 +307,23 @@ async function tattleMessage(friend){
    Telegram-bot backend (next step). */
 function getBuddy(){ try{ return JSON.parse(localStorage.getItem('goose-buddy')||'null'); }catch(e){ return null; } }
 function setBuddy(b){ try{ b?localStorage.setItem('goose-buddy',JSON.stringify(b)):localStorage.removeItem('goose-buddy'); }catch(e){} }
-async function autoTattle(task){
+function autoTattle(task){
   const b=getBuddy(); if(!b||!b.auto||!b.name) return;
-  gooseSay('Auto-tattling to '+b.name+'… you brought this on yourself. 🪿');
-  const msg=await tattleMessage(b.name);
-  setTimeout(()=>window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank'),600);
+  gooseSay('Telling '+b.name+' you ghosted "'+task+'"… you signed up for this. 🪿');
+  setTimeout(()=>window.open('https://wa.me/?text='+encodeURIComponent(buddyAlert(task)),'_blank'),600);
 }
 function tattle(){
   const ov=document.createElement('div'); ov.id='tattleModal';
   ov.style.cssText='position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px';
   ov.innerHTML=
     '<div style="background:var(--card);color:var(--ink);max-width:380px;width:100%;border-radius:22px;padding:18px;box-shadow:var(--shadow)">'+
-      '<h3 style="font-family:\'Baloo 2\';margin:0 0 4px;font-size:20px">🚨 Sic Goose on a friend</h3>'+
-      '<p style="margin:0 0 10px;font-size:13px;color:var(--muted);font-weight:700">Goose hunts them too. They’ll know it was you. 🪿</p>'+
-      '<input id="tattleName" placeholder="friend’s name" autocomplete="off" style="width:100%;height:46px;padding:0 14px;font-size:16px;font-family:Nunito;font-weight:700;border:2.5px solid #ECE6D8;border-radius:14px;outline:none;margin-bottom:10px;background:var(--bg);color:var(--ink)" />'+
-      '<label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--ink);margin:0 0 10px;cursor:pointer"><input type="checkbox" id="tattleAuto" style="width:18px;height:18px;accent-color:var(--coral)" />🔁 Auto-mode: tattle to them every time I ghost a task</label>'+
-      '<div id="tattlePreview" style="background:var(--bubble);border-radius:14px;padding:12px;font-size:14px;font-weight:600;line-height:1.4;min-height:64px;white-space:pre-wrap;margin-bottom:12px">Goose is sharpening the tattle…</div>'+
+      '<h3 style="font-family:\'Baloo 2\';margin:0 0 4px;font-size:20px">👯 Accountability buddy</h3>'+
+      '<p style="margin:0 0 10px;font-size:13px;color:var(--muted);font-weight:700">Pair up — Goose watches you both. Ghost a task and your buddy gets the alert. 🪿</p>'+
+      '<input id="tattleName" placeholder="buddy’s name" autocomplete="off" style="width:100%;height:46px;padding:0 14px;font-size:16px;font-family:Nunito;font-weight:700;border:2.5px solid #ECE6D8;border-radius:14px;outline:none;margin-bottom:10px;background:var(--bg);color:var(--ink)" />'+
+      '<label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--ink);margin:0 0 10px;cursor:pointer"><input type="checkbox" id="tattleAuto" style="width:18px;height:18px;accent-color:var(--coral)" />🔁 Auto-alert my buddy every time I ghost a task</label>'+
+      '<div id="tattlePreview" style="background:var(--bubble);border-radius:14px;padding:12px;font-size:14px;font-weight:600;line-height:1.4;min-height:64px;white-space:pre-wrap;margin-bottom:12px">…</div>'+
       '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
-        '<button id="tWa" class="btn green" style="flex:1;min-width:110px;font-size:15px;padding:12px">WhatsApp</button>'+
+        '<button id="tInvite" class="btn green" style="flex:1;min-width:110px;font-size:15px;padding:12px">📨 Send invite</button>'+
         '<button id="tShare" class="btn" style="flex:1;min-width:110px;font-size:15px;padding:12px">Share</button>'+
         '<button id="tCopy" class="btn ghost" style="flex:1;min-width:84px;font-size:15px;padding:12px">Copy</button>'+
       '</div>'+
@@ -333,21 +332,16 @@ function tattle(){
   document.body.appendChild(ov);
   const close=()=>ov.remove();
   $('tClose').onclick=close; ov.onclick=e=>{ if(e.target===ov) close(); };
-  let current='';
-  async function refresh(){
-    const friend=$('tattleName').value.trim()||'Your friend';
-    $('tattlePreview').textContent='Goose is sharpening the tattle…';
-    current=await tattleMessage(friend);
-    $('tattlePreview').textContent=current;
-  }
-  $('tattleName').addEventListener('input',()=>{ clearTimeout(window._tt); window._tt=setTimeout(refresh,500); });
+  function preview(){ $('tattlePreview').textContent=buddyInvite(); }
+  function savePref(){ const f=$('tattleName').value.trim(); const auto=$('tattleAuto').checked; if(f) setBuddy({name:f,auto:auto}); else setBuddy(null); }
   const saved=getBuddy(); if(saved){ $('tattleName').value=saved.name||''; $('tattleAuto').checked=!!saved.auto; }
-  refresh();
-  function savePref(){ const f=$('tattleName').value.trim(); const auto=$('tattleAuto').checked; if(f&&auto) setBuddy({name:f,auto:true}); else if(!auto) setBuddy(null); }
-  function done(){ const f=$('tattleName').value.trim()||'Your friend'; savePref(); close(); gooseSay(f+' has been notified. '+($('tattleAuto')&&getBuddy()&&getBuddy().auto?'Goose will keep '+f+' posted automatically. ':'')+'No hiding from the flock now. 🪿'); }
-  $('tWa').onclick=()=>{ window.open('https://wa.me/?text='+encodeURIComponent(current),'_blank'); done(); };
-  $('tShare').onclick=()=>{ if(navigator.share){ navigator.share({text:current}).then(done).catch(()=>{}); } else { try{navigator.clipboard.writeText(current);}catch(e){} done(); } };
-  $('tCopy').onclick=()=>{ savePref(); try{navigator.clipboard.writeText(current);}catch(e){} $('tCopy').textContent='Copied ✓'; };
+  preview();
+  $('tattleName').addEventListener('input',()=>{ savePref(); preview(); });
+  $('tattleAuto').addEventListener('change',savePref);
+  function paired(){ const f=$('tattleName').value.trim(); close(); if(f) gooseSay('You and '+f+' are paired. I\'m watching you both now — ghost a task and '+f+' hears about it. 🪿'); }
+  $('tInvite').onclick=()=>{ savePref(); window.open('https://wa.me/?text='+encodeURIComponent(buddyInvite()),'_blank'); paired(); };
+  $('tShare').onclick=()=>{ savePref(); if(navigator.share){ navigator.share({text:buddyInvite()}).then(paired).catch(()=>{}); } else { try{navigator.clipboard.writeText(buddyInvite());}catch(e){} paired(); } };
+  $('tCopy').onclick=()=>{ savePref(); try{navigator.clipboard.writeText(buddyInvite());}catch(e){} $('tCopy').textContent='Copied ✓'; };
 }
 function markGhost(i){
   if(tasks[i].done) return;
@@ -457,6 +451,11 @@ function boot(){
 boot();
 $('proofInput').addEventListener('change', e=>onProofPicked(e.target.files[0]));
 $('tattleLink').onclick=e=>{ e.preventDefault(); tattle(); };
+// Incoming buddy invite (?buddy=Name): pre-pair so they can confirm in one tap.
+(function(){ try{
+  var inv=new URLSearchParams(location.search).get('buddy');
+  if(inv && !getBuddy()){ setBuddy({name:inv.slice(0,40), auto:false}); }
+}catch(e){} })();
 $('toCard').onclick=()=>{
   const done=tasks.filter(t=>t.done).length;
   $('cardName').textContent=(name?name+' ':'')+'survived Goose today';
