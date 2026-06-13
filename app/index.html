@@ -57,9 +57,13 @@
   .bub{background:var(--bubble);color:var(--ink);padding:11px 14px;border-radius:20px;font-size:15.5px;font-weight:600;line-height:1.35;border-bottom-left-radius:6px}
   .row.me .bub{background:var(--amber);color:#fff;border-bottom-left-radius:20px;border-bottom-right-radius:6px}
   .bub.typing{opacity:.55;font-style:italic}
-  .tasks{flex:none;padding-top:10px;display:flex;flex-direction:column;gap:8px}
-  .task{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:16px;padding:9px 10px 9px 14px;box-shadow:var(--shadow)}
+  .tasks{flex:none;padding-top:10px;display:flex;flex-direction:column}
+  .tasks:empty{padding-top:0}
+  .task{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:16px;padding:9px 10px 9px 14px;box-shadow:var(--shadow);margin-bottom:8px;overflow:hidden;
+        transition:height .34s ease, opacity .26s ease, transform .34s cubic-bezier(.4,0,.2,1), margin .34s ease, padding .34s ease}
+  .task:last-child{margin-bottom:0}
   .task.done{opacity:.55}
+  .task.leaving{opacity:0;transform:translateX(44px) scale(.97)}
   .task .t{flex:1;font-weight:800;font-size:15px}
   .task.done .t{text-decoration:line-through}
   .mini{font-family:"Baloo 2";font-weight:700;font-size:14px;border:none;border-radius:12px;padding:9px 12px;color:#fff;cursor:pointer}
@@ -130,6 +134,7 @@
         <button class="tool wide" id="installBtn" style="display:none">📲 Install Goose</button>
       </div>
       <p id="calStatus" class="toolnote"></p>
+      <button id="calDisconnect" style="display:none;align-self:center;background:none;border:none;font-family:'Baloo 2';font-weight:700;font-size:12.5px;color:var(--coral);text-decoration:underline;cursor:pointer;padding:2px 6px">Disconnect Google Calendar</button>
       <p class="toolnote calwarn">Google shows an “unverified app” notice — tap <b>Advanced → Continue</b>. Goose only reads your calendar. 🪿</p>
       <div id="installHint" class="toolhint" style="display:none"></div>
     </div>
@@ -221,9 +226,9 @@ function updateHud(){
 function renderTasks(){
   const c=$('taskList'); c.innerHTML='';
   tasks.forEach((t,i)=>{
-    const d=document.createElement('div'); d.className='task'+(t.done?' done':'');
-    d.innerHTML='<span class="t"></span>'+(t.done?'<span class="mini d">✓ done</span>':
-      '<button class="mini d" data-d="'+i+'">✓ done</button><button class="mini g" data-g="'+i+'">👻 ghost</button>');
+    if(t.done) return;   // completed tasks vanish (animated out in markDone) — never re-rendered
+    const d=document.createElement('div'); d.className='task'; d.setAttribute('data-task', i);
+    d.innerHTML='<span class="t"></span><button class="mini d" data-d="'+i+'">✓ done</button><button class="mini g" data-g="'+i+'">👻 ghost</button>';
     d.querySelector('.t').textContent=t.text;
     c.appendChild(d);
   });
@@ -237,7 +242,20 @@ function markDone(i, opts){
   const t=tasks[i].text; pushHistory('completed "'+t+'"');
   if(!opts.silent) gooseSayAI('done', {task:t}, pick(NAG.done).replace('{t}',t));
   if(tasks.every(x=>x.done)) gooseSayAI('allDone', {}, pick(NAG.allDone));
-  updateHud(); renderTasks();
+  updateHud();
+  const el=$('taskList').querySelector('[data-task="'+i+'"]');
+  if(el) animateTaskOut(el); else renderTasks();   // smooth collapse-out; task data stays so streak/share count stay correct
+}
+// smoothly collapse a completed task out of the list, then drop it from the DOM
+function animateTaskOut(el){
+  const h=el.offsetHeight;
+  el.style.height=h+'px'; el.getBoundingClientRect();          // lock height + force reflow
+  el.classList.add('leaving');
+  el.style.height='0'; el.style.marginBottom='0'; el.style.paddingTop='0'; el.style.paddingBottom='0';
+  let gone=false;
+  const finish=()=>{ if(gone) return; gone=true; if(el.parentNode) el.parentNode.removeChild(el); };
+  el.addEventListener('transitionend', e=>{ if(e.propertyName==='height') finish(); });
+  setTimeout(finish, 520);                                     // fallback if transitionend doesn't fire
 }
 
 /* ---- Proof-or-it-didn't-happen: snap a photo, Claude vision judges it ---- */
@@ -539,21 +557,33 @@ document.addEventListener('visibilitychange',()=>{
 <script src="/gcal.js"></script>
 <script>
   (function(){
-    var btn=document.getElementById('calConnect'), st=document.getElementById('calStatus');
+    var btn=document.getElementById('calConnect'), st=document.getElementById('calStatus'), dc=document.getElementById('calDisconnect');
     if(!btn) return;
     function say(m){ st.textContent=m; }
+    function setConnected(on){
+      btn.textContent = on ? '🔄 Connected' : '🗓️ Calendar';
+      if(dc) dc.style.display = on ? 'inline-block' : 'none';
+    }
     btn.addEventListener('click',function(){
       if(!window.GooseCal){ say('Calendar connector still loading — try again in a sec.'); return; }
       if(!GooseCal.isConfigured()){ say('Calendar isn’t set up yet.'); return; }
       say('Opening Google… approve the “unverified app” screen (Advanced → Continue) to let Goose in. 🪿');
       GooseCal.connect().then(function(){
-        say('✅ Connected. Reading your day…'); btn.textContent='🔄 Connected';
+        say('✅ Connected. Reading your day…'); setConnected(true);
         return GooseCal.listToday();
       }).then(function(items){
         items=items||[];
         say('✅ Pulled '+items.length+' thing'+(items.length===1?'':'s')+' off your calendar. Nowhere to hide. 🪿');
         if(typeof importCalendar==='function') importCalendar(items);
       }).catch(function(e){ say('✗ '+((e&&e.message)||'Could not connect.')); });
+    });
+    if(dc) dc.addEventListener('click',function(){
+      try{ if(window.GooseCal) GooseCal.disconnect(); }catch(e){}   // revokes the Google token
+      try{ calImported=false; }catch(e){}
+      try{ if(typeof saveState==='function') saveState(); }catch(e){}
+      setConnected(false);
+      say('🔌 Disconnected — Goose can’t see your calendar anymore. Your tasks stay put.');
+      try{ if(typeof gooseSay==='function') gooseSay("Disconnected from your calendar. I'll pretend I didn't see all that. The tasks stay, though. 🪿"); }catch(e){}
     });
   })();
 </script>
