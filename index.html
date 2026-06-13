@@ -16,15 +16,17 @@
 <meta name="apple-mobile-web-app-title" content="Goose" />
 <link rel="icon" href="/icon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-<script>(function(){try{var t=localStorage.getItem('goose-theme');if(!t)t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script>(function(){try{var t=localStorage.getItem('goose-theme');if(!t)t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <style>
   :root{
-    --bg:#FBF7EF; --card:#FFFFFF; --ink:#2C2C2A; --muted:#6B6A64;
-    --amber:#E8913A; --amber-dark:#C0721F; --disc:#FAEEDA; --line:rgba(44,44,42,.10);
+    --bg:#FAF8F4; --card:#FFFFFF; --ink:#1F1E1C; --muted:#86837C;
+    --amber:#D9822B; --amber-dark:#B0661A; --disc:#F1ECE3; --line:rgba(31,30,28,.12);
   }
   html[data-theme="dark"]{
-    --bg:#181613; --card:#23201B; --ink:#F4F0E7; --muted:#A8A296;
-    --amber:#F4A84A; --amber-dark:#F4A84A; --disc:#2E2A22; --line:rgba(244,240,231,.12);
+    --bg:#0F0F12; --card:#17171B; --ink:#ECEBE7; --muted:#8B8A84;
+    --amber:#E8913A; --amber-dark:#F2A85A; --disc:#1E1E23; --line:rgba(255,255,255,.09);
   }
   body{transition:background .25s ease, color .25s ease}
   .theme-toggle{margin-left:auto;height:auto;width:auto;padding:6px;font-size:22px;line-height:1;background:none;color:var(--ink);border:none;border-radius:10px;box-shadow:none;cursor:pointer}
@@ -32,15 +34,15 @@
   html,body{margin:0}
   body{
     background:var(--bg); color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
-    -webkit-font-smoothing:antialiased; line-height:1.5;
+    font-family:Inter,-apple-system,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.5; letter-spacing:-.01em;
     display:flex; justify-content:center; padding:24px 18px 48px;
   }
   .wrap{width:100%; max-width:440px}
   .logo{display:flex; align-items:center; gap:9px; margin-bottom:18px}
-  .logo span{font-size:20px; font-weight:600; letter-spacing:-.01em}
+  .logo span{font-size:20px; font-weight:700; letter-spacing:-.02em; font-family:"Space Grotesk",Inter,sans-serif}
   .mascot{display:block; width:190px; max-width:70%; margin:6px auto 14px}
-  h1{font-size:30px; line-height:1.15; font-weight:700; letter-spacing:-.02em; margin:0 0 10px}
+  h1{font-size:30px; line-height:1.12; font-weight:700; letter-spacing:-.03em; margin:0 0 10px; font-family:"Space Grotesk",Inter,sans-serif}
   .sub{font-size:17px; color:var(--muted); margin:0 0 22px}
   form{display:flex; gap:8px; margin:0 0 8px}
   input[type=email]{

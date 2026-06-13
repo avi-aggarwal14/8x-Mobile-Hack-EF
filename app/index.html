@@ -14,41 +14,51 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>(function(){try{var t=localStorage.getItem('goose-theme');if(!t)t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <style>
   :root{
-    --bg:#FBF7EF; --card:#FFFFFF; --ink:#2A2A28; --muted:#7A786F;
-    --amber:#F2A03D; --amber-d:#C0721F; --coral:#E2603C; --green:#2FA86B; --disc:#FDEBCF;
-    --bubble:#EFEADE; --shadow:0 8px 0 rgba(42,42,40,.10);
+    --bg:#FAF8F4; --card:#FFFFFF; --ink:#1F1E1C; --muted:#86837C;
+    --amber:#D9822B; --amber-d:#B0661A; --coral:#D8543A; --green:#2E9E66; --disc:#F1ECE3;
+    --bubble:#F0EDE7; --line:rgba(31,30,28,.12); --shadow:0 1px 2px rgba(31,30,28,.06); --radius:11px;
   }
+  html[data-theme="dark"]{
+    --bg:#0F0F12; --card:#17171B; --ink:#ECEBE7; --muted:#8B8A84;
+    --amber:#E8913A; --amber-d:#F2A85A; --coral:#E2603C; --green:#3BA776; --disc:#1E1E23;
+    --bubble:#1C1C21; --line:rgba(255,255,255,.09); --shadow:0 1px 2px rgba(0,0,0,.5);
+  }
+  body{transition:background .2s ease, color .2s ease}
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%}
-  body{background:var(--bg); color:var(--ink); font-family:Nunito,system-ui,sans-serif; overflow:hidden}
+  body{background:var(--bg); color:var(--ink); font-family:Inter,-apple-system,system-ui,sans-serif; overflow:hidden; letter-spacing:-.01em; -webkit-font-smoothing:antialiased}
   .app{max-width:480px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;position:relative}
-  h1,h2,h3,.fun{font-family:"Baloo 2",system-ui,sans-serif}
+  h1,h2,h3,.fun{font-family:"Space Grotesk",Inter,system-ui,sans-serif;letter-spacing:-.02em}
   .screen{position:absolute;inset:0;display:flex;flex-direction:column;padding:20px;overflow-y:auto;transition:opacity .25s}
   .hide{opacity:0;pointer-events:none}
   /* buttons */
-  .btn{font-family:"Baloo 2";font-weight:700;font-size:19px;border:none;border-radius:18px;padding:15px 18px;
-       background:var(--amber);color:#fff;box-shadow:var(--shadow);cursor:pointer;width:100%;transition:transform .06s}
-  .btn:active{transform:translateY(4px);box-shadow:0 4px 0 rgba(42,42,40,.10)}
-  .btn.coral{background:var(--coral)} .btn.green{background:var(--green)} .btn.ghost{background:#B9B5AA}
+  .btn{font-family:"Space Grotesk",Inter,sans-serif;font-weight:600;font-size:16px;border:none;border-radius:var(--radius);padding:14px 18px;
+       background:var(--amber);color:#fff;box-shadow:none;cursor:pointer;width:100%;transition:transform .08s, filter .15s;letter-spacing:-.01em}
+  .btn:active{transform:scale(.98);filter:brightness(.95)}
+  .btn.coral{background:var(--coral)} .btn.green{background:var(--green)} .btn.ghost{background:#2C2C33}
   /* START screen */
   .goose-hero{width:140px;margin:8px auto 2px;display:block}
   .start h1{font-size:34px;text-align:center;margin:6px 0 4px;line-height:1.05}
   .start .sub{text-align:center;color:var(--muted);font-weight:700;margin:0 0 18px}
   .field{margin-bottom:12px}
-  .field label{font-family:"Baloo 2";font-weight:700;font-size:14px;color:var(--amber-d);display:block;margin:0 0 5px 4px}
+  .field label{font-family:"Space Grotesk";font-weight:700;font-size:14px;color:var(--amber-d);display:block;margin:0 0 5px 4px}
   .inp{width:100%;height:52px;padding:0 16px;font-size:16px;font-family:Nunito;font-weight:700;color:var(--ink);
-       background:var(--card);border:2.5px solid #ECE6D8;border-radius:16px;outline:none}
+       background:var(--card);border:1px solid var(--line);border-radius:16px;outline:none}
   .inp:focus{border-color:var(--amber)}
   /* CHAT screen */
   .hud{background:var(--card);border-radius:20px;padding:12px 14px;box-shadow:var(--shadow);margin-bottom:12px;flex:none}
-  .hud-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-  .lvl{font-family:"Baloo 2";font-weight:800;font-size:16px}
-  .streak{font-family:"Baloo 2";font-weight:800;font-size:16px;color:var(--coral)}
-  .xpbar{height:12px;background:#ECE6D8;border-radius:8px;overflow:hidden}
+  .hud-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .hud-top .streak{margin-left:auto}
+  .theme-toggle{background:none;border:none;color:var(--ink);font-size:17px;line-height:1;padding:2px 2px;cursor:pointer;opacity:.65;transition:opacity .15s,transform .1s}
+  .theme-toggle:active{transform:scale(.88)}
+  .lvl{font-family:"Space Grotesk";font-weight:800;font-size:16px}
+  .streak{font-family:"Space Grotesk";font-weight:800;font-size:16px;color:var(--coral)}
+  .xpbar{height:6px;background:var(--disc);border-radius:6px;overflow:hidden}
   .xpfill{height:100%;width:0;background:var(--amber);border-radius:8px;transition:width .5s}
   .thread{flex:1;overflow-y:auto;padding:4px 2px 8px;display:flex;flex-direction:column;gap:10px}
   .row{display:flex;align-items:flex-end;gap:8px;max-width:88%}
@@ -66,19 +76,19 @@
   .task.leaving{opacity:0;transform:translateX(44px) scale(.97)}
   .task .t{flex:1;font-weight:800;font-size:15px}
   .task.done .t{text-decoration:line-through}
-  .mini{font-family:"Baloo 2";font-weight:700;font-size:14px;border:none;border-radius:12px;padding:9px 12px;color:#fff;cursor:pointer}
-  .mini.d{background:var(--green)} .mini.g{background:#B9B5AA}
+  .mini{font-family:"Space Grotesk";font-weight:700;font-size:14px;border:none;border-radius:12px;padding:9px 12px;color:#fff;cursor:pointer}
+  .mini.d{background:var(--green)} .mini.g{background:#2C2C33}
   .barbtns{flex:none;display:flex;gap:8px;padding-top:10px}
   .barbtns .btn{font-size:16px;padding:13px}
   /* chat fills the screen; the toolkit scrolls in below it */
   #s-chat{display:block;padding:0}
   .chat-hero{height:100dvh;display:flex;flex-direction:column;padding:20px}
   .chat-hero .thread{min-height:0}
-  .scrollcue{flex:none;text-align:center;font-family:"Baloo 2";font-weight:700;font-size:12px;color:var(--muted);opacity:.55;padding:9px 0 0;animation:cuebob 1.8s ease-in-out infinite}
+  .scrollcue{flex:none;text-align:center;font-family:"Space Grotesk";font-weight:700;font-size:12px;color:var(--muted);opacity:.55;padding:9px 0 0;animation:cuebob 1.8s ease-in-out infinite}
   @keyframes cuebob{0%,100%{transform:translateY(0)}50%{transform:translateY(2.5px)}}
   .tools{padding:8px 20px 30px;display:flex;flex-direction:column;gap:10px}
   .tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-  .tool{font-family:"Baloo 2";font-weight:700;font-size:14.5px;border:2px solid #ECE6D8;border-radius:15px;
+  .tool{font-family:"Space Grotesk";font-weight:700;font-size:14.5px;border:1px solid var(--line);border-radius:15px;
         padding:12px 8px;background:var(--card);color:var(--ink);cursor:pointer;display:flex;align-items:center;
         justify-content:center;gap:6px;text-align:center;line-height:1.15;min-height:50px;transition:transform .06s}
   .tool:active{transform:scale(.97)}
@@ -89,10 +99,10 @@
   .toolhint{background:var(--card);border-radius:14px;padding:12px;font-size:13px;line-height:1.5;color:var(--ink);box-shadow:var(--shadow)}
   /* CARD screen */
   .card-wrap{flex:1;display:flex;flex-direction:column;justify-content:center}
-  #card{background:var(--amber);border-radius:26px;padding:24px;color:#fff;text-align:center}
+  #card{background:var(--amber);border-radius:18px;padding:24px;color:#fff;text-align:center}
   #card .goosec{width:96px;margin:0 auto 6px;display:block}
   #card h2{font-size:26px;margin:4px 0}
-  #card .big{font-family:"Baloo 2";font-weight:800;font-size:46px;line-height:1;margin:8px 0}
+  #card .big{font-family:"Space Grotesk";font-weight:800;font-size:46px;line-height:1;margin:8px 0}
   #card .nagq{background:rgba(255,255,255,.18);border-radius:16px;padding:12px;font-weight:700;font-size:15px;margin:12px 0}
   #card .url{font-weight:800;font-size:14px;opacity:.9;margin-top:8px}
   .confetti{position:absolute;top:-10px;font-size:22px;animation:fall 1.1s ease-in forwards;pointer-events:none}
@@ -109,6 +119,7 @@
         <div class="hud-top">
           <span class="lvl">🪿 Lvl <span id="lvl">1</span></span>
           <span class="streak">🔥 <span id="streak">0</span> streak</span>
+          <button class="theme-toggle" id="themeBtn" aria-label="Toggle light/dark">🌙</button>
         </div>
         <div class="xpbar"><div class="xpfill" id="xp"></div></div>
       </div>
@@ -117,12 +128,12 @@
 
       <!-- mode toggle: Task = Goose holds you accountable · Chat = just talk -->
       <div id="modeToggle" style="display:flex;gap:6px;margin-top:10px;background:var(--bubble);border-radius:14px;padding:4px">
-        <button type="button" class="modebtn" data-mode="task" style="flex:1;border:none;border-radius:11px;padding:9px 6px;font-family:'Baloo 2';font-weight:800;font-size:13.5px;cursor:pointer;transition:all .12s">🎯 Task</button>
-        <button type="button" class="modebtn" data-mode="chat" style="flex:1;border:none;border-radius:11px;padding:9px 6px;font-family:'Baloo 2';font-weight:800;font-size:13.5px;cursor:pointer;transition:all .12s">💬 Chat</button>
+        <button type="button" class="modebtn" data-mode="task" style="flex:1;border:none;border-radius:11px;padding:9px 6px;font-family:'Space Grotesk';font-weight:800;font-size:13.5px;cursor:pointer;transition:all .12s">🎯 Task</button>
+        <button type="button" class="modebtn" data-mode="chat" style="flex:1;border:none;border-radius:11px;padding:9px 6px;font-family:'Space Grotesk';font-weight:800;font-size:13.5px;cursor:pointer;transition:all .12s">💬 Chat</button>
       </div>
       <!-- composer: name first, then Task-mode logs an accountable task · Chat-mode just talks -->
       <form id="composer" autocomplete="off" style="display:flex;gap:8px;margin-top:8px">
-        <input id="chatInput" placeholder="Message Goose…" autocomplete="off" style="flex:1;min-width:0;height:50px;padding:0 16px;font-size:16px;font-family:Nunito;font-weight:700;color:var(--ink);background:var(--card);border:2.5px solid #ECE6D8;border-radius:16px;outline:none" />
+        <input id="chatInput" placeholder="Message Goose…" autocomplete="off" style="flex:1;min-width:0;height:50px;padding:0 16px;font-size:16px;font-family:Nunito;font-weight:700;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:16px;outline:none" />
         <button class="btn coral" id="send" type="submit" style="width:auto;padding:0 20px">➤</button>
       </form>
 
@@ -139,7 +150,7 @@
         <button class="tool wide" id="installBtn" style="display:none">📲 Install Goose</button>
       </div>
       <p id="calStatus" class="toolnote"></p>
-      <button id="calDisconnect" style="display:none;align-self:center;background:none;border:none;font-family:'Baloo 2';font-weight:700;font-size:12.5px;color:var(--coral);text-decoration:underline;cursor:pointer;padding:2px 6px">Disconnect Google Calendar</button>
+      <button id="calDisconnect" style="display:none;align-self:center;background:none;border:none;font-family:'Space Grotesk';font-weight:700;font-size:12.5px;color:var(--coral);text-decoration:underline;cursor:pointer;padding:2px 6px">Disconnect Google Calendar</button>
       <p class="toolnote calwarn">Google shows an “unverified app” notice — tap <b>Advanced → Continue</b>. Goose only reads your calendar. 🪿</p>
       <div id="installHint" class="toolhint" style="display:none"></div>
     </div>
@@ -312,19 +323,39 @@ function buddyInvite(){
    Telegram-bot backend (next step). */
 function getBuddy(){ try{ return JSON.parse(localStorage.getItem('goose-buddy')||'null'); }catch(e){ return null; } }
 function setBuddy(b){ try{ b?localStorage.setItem('goose-buddy',JSON.stringify(b)):localStorage.removeItem('goose-buddy'); }catch(e){} }
+/* Friends ledger: how many times Goose has tattled on you to each buddy. */
+function getFriends(){ try{ return JSON.parse(localStorage.getItem('goose-friends')||'{}'); }catch(e){ return {}; } }
+function bumpFriend(nm){ if(!nm) return; const f=getFriends(); f[nm]=(f[nm]||0)+1; try{ localStorage.setItem('goose-friends',JSON.stringify(f)); }catch(e){} }
 function autoTattle(task){
   const b=getBuddy(); if(!b||!b.auto||!b.name) return;
+  bumpFriend(b.name);
   gooseSay('Telling '+b.name+' you ghosted "'+task+'"… you signed up for this. 🪿');
   setTimeout(()=>window.open('https://wa.me/?text='+encodeURIComponent(buddyAlert(task)),'_blank'),600);
+}
+// The flock ledger, rendered inside the Buddy sheet.
+function friendsHTML(){
+  const f=getFriends();
+  const rows=Object.keys(f).sort((a,b)=>f[b]-f[a]);
+  const list = rows.length
+    ? rows.map((n,i)=>'<div style="display:flex;align-items:center;gap:10px;background:var(--bubble);border-radius:14px;padding:10px 12px;margin-bottom:7px">'
+        +'<span style="font-size:17px">'+(i===0?'🥇':i===1?'🥈':i===2?'🥉':'🪿')+'</span>'
+        +'<span style="flex:1;font-weight:800;font-size:14.5px">'+n.replace(/</g,'')+'</span>'
+        +'<span style="font-weight:800;font-size:14.5px;color:var(--coral)">'+f[n]+' tattle'+(f[n]===1?'':'s')+'</span></div>').join('')
+    : '<p style="color:var(--muted);font-weight:700;font-size:13px;text-align:center;padding:6px 0">No tattles yet — Goose keeps score once auto-alert fires. 🪿</p>';
+  return '<div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px">'+
+      '<h4 style="font-family:\'Space Grotesk\';margin:0 0 2px;font-size:16px">🏆 Friends Leaderboard</h4>'+
+      '<p style="margin:0 0 8px;font-size:12px;color:var(--muted);font-weight:700">Times Goose ratted you out to each buddy.</p>'+
+      list+
+    '</div>';
 }
 function tattle(){
   const ov=document.createElement('div'); ov.id='tattleModal';
   ov.style.cssText='position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px';
   ov.innerHTML=
-    '<div style="background:var(--card);color:var(--ink);max-width:380px;width:100%;border-radius:22px;padding:18px;box-shadow:var(--shadow)">'+
-      '<h3 style="font-family:\'Baloo 2\';margin:0 0 4px;font-size:20px">👯 Accountability buddy</h3>'+
+    '<div style="background:var(--card);color:var(--ink);max-width:380px;width:100%;border-radius:16px;padding:18px;box-shadow:var(--shadow)">'+
+      '<h3 style="font-family:\'Space Grotesk\';margin:0 0 4px;font-size:20px">👯 Accountability buddy</h3>'+
       '<p style="margin:0 0 10px;font-size:13px;color:var(--muted);font-weight:700">Pair up — Goose watches you both. Ghost a task and your buddy gets the alert. 🪿</p>'+
-      '<input id="tattleName" placeholder="buddy’s name" autocomplete="off" style="width:100%;height:46px;padding:0 14px;font-size:16px;font-family:Nunito;font-weight:700;border:2.5px solid #ECE6D8;border-radius:14px;outline:none;margin-bottom:10px;background:var(--bg);color:var(--ink)" />'+
+      '<input id="tattleName" placeholder="buddy’s name" autocomplete="off" style="width:100%;height:46px;padding:0 14px;font-size:16px;font-family:Nunito;font-weight:700;border:1px solid var(--line);border-radius:14px;outline:none;margin-bottom:10px;background:var(--bg);color:var(--ink)" />'+
       '<label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--ink);margin:0 0 10px;cursor:pointer"><input type="checkbox" id="tattleAuto" style="width:18px;height:18px;accent-color:var(--coral)" />🔁 Auto-alert my buddy every time I ghost a task</label>'+
       '<div id="tattlePreview" style="background:var(--bubble);border-radius:14px;padding:12px;font-size:14px;font-weight:600;line-height:1.4;min-height:64px;white-space:pre-wrap;margin-bottom:12px">…</div>'+
       '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
@@ -332,7 +363,8 @@ function tattle(){
         '<button id="tShare" class="btn" style="flex:1;min-width:110px;font-size:15px;padding:12px">Share</button>'+
         '<button id="tCopy" class="btn ghost" style="flex:1;min-width:84px;font-size:15px;padding:12px">Copy</button>'+
       '</div>'+
-      '<button id="tClose" style="margin-top:10px;width:100%;background:none;border:none;color:var(--muted);font-weight:700;font-family:\'Baloo 2\';font-size:14px;cursor:pointer">cancel</button>'+
+      friendsHTML()+
+      '<button id="tClose" style="margin-top:10px;width:100%;background:none;border:none;color:var(--muted);font-weight:700;font-family:\'Space Grotesk\';font-size:14px;cursor:pointer">cancel</button>'+
     '</div>';
   document.body.appendChild(ov);
   const close=()=>ov.remove();
@@ -477,6 +509,11 @@ function boot(){
 boot();
 $('proofInput').addEventListener('change', e=>onProofPicked(e.target.files[0]));
 $('tattleLink').onclick=e=>{ e.preventDefault(); tattle(); };
+(function(){ var tb=$('themeBtn'); if(!tb) return;
+  function ico(){ tb.textContent=document.documentElement.getAttribute('data-theme')==='dark'?'☀️':'🌙'; }
+  ico();
+  tb.onclick=()=>{ var n=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',n); try{localStorage.setItem('goose-theme',n);}catch(e){} ico(); };
+})();
 // Incoming buddy invite (?buddy=Name): pre-pair so they can confirm in one tap.
 (function(){ try{
   var inv=new URLSearchParams(location.search).get('buddy');
