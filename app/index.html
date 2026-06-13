@@ -57,6 +57,12 @@
   .bub{background:var(--bubble);color:var(--ink);padding:11px 14px;border-radius:20px;font-size:15.5px;font-weight:600;line-height:1.35;border-bottom-left-radius:6px}
   .row.me .bub{background:var(--amber);color:#fff;border-bottom-left-radius:20px;border-bottom-right-radius:6px}
   .bub.typing{opacity:.55;font-style:italic}
+  .bub.photo{padding:4px;background:var(--amber)}
+  .proofimg{display:block;max-width:170px;max-height:210px;border-radius:14px;object-fit:cover}
+  .bub.verdict.pass{background:#E4F4EC;color:#1E7A52}
+  .bub.verdict.fail{background:#FBE6DD;color:#A23A18}
+  .task.shake{animation:shake .42s cubic-bezier(.36,.07,.19,.97)}
+  @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
   .tasks{flex:none;padding-top:10px;display:flex;flex-direction:column}
   .tasks:empty{padding-top:0}
   .task{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:16px;padding:9px 10px 9px 14px;box-shadow:var(--shadow);margin-bottom:8px;overflow:hidden;
@@ -233,7 +239,7 @@ function renderTasks(){
   tasks.forEach((t,i)=>{
     if(t.done) return;   // completed tasks vanish (animated out in markDone) — never re-rendered
     const d=document.createElement('div'); d.className='task'; d.setAttribute('data-task', i);
-    d.innerHTML='<span class="t"></span><button class="mini d" data-d="'+i+'">✓ done</button><button class="mini g" data-g="'+i+'">👻 ghost</button>';
+    d.innerHTML='<span class="t"></span><button class="mini d" data-d="'+i+'">📸 prove it</button><button class="mini g" data-g="'+i+'">👻 ghost</button>';
     d.querySelector('.t').textContent=t.text;
     c.appendChild(d);
   });
@@ -275,21 +281,33 @@ function onProofPicked(file){
 }
 async function judgeProof(i, dataUrl){
   const t=tasks[i].text;
-  const bub=addTyping(); bub.textContent='👀 Goose is inspecting the evidence…';
+  addPhoto(dataUrl);                                    // show the evidence in the chat
+  const bub=addTyping(); bub.textContent='🔍 Goose is examining the evidence…';
   try{
     const r=await fetch('/api/judge',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({task:t, image:dataUrl})});
-    if(r.status===503){ bub.remove(); markDone(i); return; } // no API key → don't block
+    if(r.status===503){ bub.remove(); gooseSay("(My eyes are offline — I'll take your word. This ONCE.) 🪿"); markDone(i); return; }
     if(r.ok){
       const j=await r.json();
-      bub.classList.remove('typing'); bub.textContent=j.line||'';
+      bub.classList.remove('typing'); bub.classList.add('verdict', j.pass?'pass':'fail');
+      bub.textContent=(j.pass?'✅ ':'❌ ')+(j.line||'');
+      if(typeof recordMsg==='function') recordMsg(false, bub.textContent);
       if(j.pass){ markDone(i,{silent:true}); }
-      else { pushHistory('failed proof for "'+t+'"'); }
+      else { shakeTask(i); pushHistory('failed proof for "'+t+'"'); }
       return;
     }
     throw new Error('bad');
-  }catch(e){ bub.remove(); markDone(i); } // API down → accept rather than break the demo
+  }catch(e){ bub.remove(); gooseSay("(Couldn't make that out — fine, it counts. This time.) 🪿"); markDone(i); }
 }
+function addPhoto(dataUrl){
+  const row=document.createElement('div'); row.className='row me';
+  row.innerHTML='<div class="bub photo"></div>';
+  const img=document.createElement('img'); img.className='proofimg'; img.alt='proof'; img.src=dataUrl;
+  row.querySelector('.bub').appendChild(img);
+  $('thread').appendChild(row); $('thread').scrollTop=$('thread').scrollHeight;
+  if(typeof recordMsg==='function') recordMsg(true, '📸 (sent proof)');
+}
+function shakeTask(i){ const el=$('taskList').querySelector('[data-task="'+i+'"]'); if(el){ el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); } }
 
 /* ---- Accountability buddy — Goose watches you both, tattles each way ----
    Pairing is link-based (?buddy=<you>); no backend, so each phone watches its
