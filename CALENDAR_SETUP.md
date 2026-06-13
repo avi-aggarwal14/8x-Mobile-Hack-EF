@@ -1,6 +1,6 @@
 # Google Calendar API — setup guide (Goose)
 
-What you picked: **read + write events** (`calendar.events`), **client-side in the browser** (no backend, no secret), **Testing mode** with test users, and a **prove-the-connection** test page.
+What you picked: **read + write events** (`calendar.events`), **client-side in the browser** (no backend, no secret), and — as of **June 13** — **Published to Production so anyone can connect** (with an "unverified app" warning; see **Part F**). The **Connect Google Calendar** button is now live on the **landing page and the app's start screen** — not just `calendar.html`.
 
 Two columns of work:
 
@@ -34,7 +34,7 @@ Two columns of work:
    - **User support email:** your email
    - **Developer contact email:** your email
    - (Logo/links optional — skip for now.) Save.
-3. **Audience → Publishing status:** leave it on **Testing** (do **not** publish). 
+3. **Audience → Publishing status:** to let **everyone** connect, **Publish to Production** — see **Part F** below. (Fine to stay on Testing while you set up, but production is required for anyone who isn't on your test-user list.)
 4. **Test users:** click **+ Add users** and add **every Google account that will connect a calendar today** — your own, plus any teammates/testers (up to 100). 
    > ⚠️ In Testing mode, **only these emails can connect.** Anyone not on the list gets blocked. Add yourself first.
 5. **Data access / Scopes** (optional but tidy): **Add or remove scopes** → **Manually add** this scope, then Update:
@@ -87,6 +87,20 @@ When both are green, tell me and I'll fold the connection into the real Goose fl
 
 ---
 
+## Part F — Publish to Production (let EVERYONE connect)
+
+By default the app is in **Testing**, where only your added test users can connect. To open it to anyone:
+
+1. ☰ → **APIs & Services → OAuth consent screen** (a.k.a. **Google Auth Platform → Audience**).
+2. Under **Publishing status: Testing**, click **PUBLISH APP** → confirm **Push to production**.
+3. Status now reads **In production**. ✅ Any Google user can connect — no test-user list needed.
+
+**What users will see:** because `calendar.events` is a *sensitive* scope and we haven't done Google's full verification (it takes days), every user still gets a **"Google hasn't verified this app"** screen → **Advanced → Go to Goose (unsafe) → Continue**. That's expected and safe — Goose's connect buttons tell users to do exactly this. Removing the warning needs full verification (privacy policy + homepage + domain verification + Google review) — a later step, not for today.
+
+> No code or Client ID change is needed to publish — it's purely the console toggle above.
+
+---
+
 ## Testing locally (optional)
 
 `file://` won't work — Google needs a real `http://localhost` origin. From the project folder:
@@ -114,4 +128,4 @@ Make sure `http://localhost:3000` is in your Authorized JavaScript origins (Part
 
 In the **client-side** flow there is **no secret**. The Client ID is meant to be public (it ships in the browser). Access is gated by (1) the Authorized JavaScript origins you set, and (2) your Testing-mode test-user list. So `config.js` with the real Client ID is fine to push to the public repo.
 
-> Heads up for later: to let the **public** (not just test users) connect, you'd have to **publish** the app and pass **Google verification** (Calendar is a "sensitive" scope) — that takes days, so it's not for today. And true *proactive* nagging while the app is closed needs the **server-side** flow (refresh token + a tiny backend) — a later upgrade.
+> ✅ **Done June 13:** we **published to Production** (Part F) so the public can connect — users just click through the "unverified app" warning (full Google verification to remove it is a later step). Note: true *proactive* nagging while the app is closed still needs the **server-side** flow (refresh token + a tiny backend) — a later upgrade.

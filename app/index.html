@@ -61,6 +61,7 @@
   .av{width:30px;height:30px;flex:none;border-radius:50%;background:var(--disc);display:flex;align-items:center;justify-content:center}
   .bub{background:var(--bubble);color:var(--ink);padding:11px 14px;border-radius:20px;font-size:15.5px;font-weight:600;line-height:1.35;border-bottom-left-radius:6px}
   .row.me .bub{background:var(--amber);color:#fff;border-bottom-left-radius:20px;border-bottom-right-radius:6px}
+  .bub.typing{opacity:.55;font-style:italic}
   .tasks{flex:none;padding-top:10px;display:flex;flex-direction:column;gap:8px}
   .task{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:16px;padding:9px 10px 9px 14px;box-shadow:var(--shadow)}
   .task.done{opacity:.55}
@@ -99,6 +100,8 @@
     <button class="btn coral" id="go">Sic the goose on me →</button>
     <button class="btn" id="installBtn" style="display:none;margin-top:10px;background:var(--ink);color:var(--bg)">📲 Install Goose</button>
     <div id="installHint" style="display:none;margin-top:10px;background:var(--card);border-radius:14px;padding:12px;font-size:13px;line-height:1.5;color:var(--ink);box-shadow:var(--shadow)"></div>
+    <button class="btn" id="calConnect" style="margin-top:10px;background:var(--card);color:var(--amber-d);box-shadow:var(--shadow)">🗓️ Connect Google Calendar</button>
+    <p id="calStatus" style="margin:8px 2px 0;font-size:13px;font-weight:700;color:var(--muted);line-height:1.45;text-align:center"></p>
   </section>
 
   <!-- CHAT -->
@@ -167,6 +170,31 @@ function addBub(text, me){
   $('thread').appendChild(row); $('thread').scrollTop=$('thread').scrollHeight;
 }
 function gooseSay(text){ addBub(text,false); }
+
+/* ---- Claude-powered goose lines (via /api/nag), with canned fallback ---- */
+const NAG_API='/api/nag';
+let history=[];
+function pushHistory(s){ history.push(s); if(history.length>6) history.shift(); }
+function timeNow(){ try{return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}catch(e){return '';} }
+function taskSummary(){ return tasks.map(t=>({text:t.text,done:!!t.done})); }
+function addTyping(){
+  const row=document.createElement('div'); row.className='row';
+  row.innerHTML='<div class="av">🪿</div><div class="bub typing">…</div>';
+  $('thread').appendChild(row); $('thread').scrollTop=$('thread').scrollHeight;
+  return row.querySelector('.bub');
+}
+// Reserves a bubble slot immediately, then fills it from Claude (or the fallback string on any failure).
+async function gooseSayAI(kind, ctx, fallback){
+  const bub=addTyping();
+  let text=fallback;
+  try{
+    const r=await fetch(NAG_API,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(Object.assign({kind,name,time:timeNow(),tasks:taskSummary(),history},ctx))});
+    if(r.ok){ const j=await r.json(); if(j&&j.text) text=j.text; }
+  }catch(e){/* offline / API down → keep fallback */}
+  bub.classList.remove('typing'); bub.textContent=text;
+  $('thread').scrollTop=$('thread').scrollHeight;
+}
 function updateHud(){
   $('xp').style.width=Math.min(100,(xp%100))+'%';
   $('lvl').textContent=Math.floor(xp/100)+1;
@@ -187,22 +215,25 @@ function renderTasks(){
 function markDone(i){
   if(tasks[i].done) return;
   tasks[i].done=true; xp+=50; streak++; confetti();
-  gooseSay(pick(NAG.done).replace('{t}',tasks[i].text));
-  if(tasks.every(t=>t.done)) gooseSay(pick(NAG.allDone));
+  const t=tasks[i].text; pushHistory('completed "'+t+'"');
+  gooseSayAI('done', {task:t}, pick(NAG.done).replace('{t}',t));
+  if(tasks.every(x=>x.done)) gooseSayAI('allDone', {}, pick(NAG.allDone));
   updateHud(); renderTasks();
 }
 function markGhost(i){
   if(tasks[i].done) return;
   streak=0;
-  gooseSay(pick(NAG.ghost).replace('{t}',tasks[i].text));
+  const t=tasks[i].text; pushHistory('ghosted "'+t+'"');
+  gooseSayAI('ghost', {task:t}, pick(NAG.ghost).replace('{t}',t));
   updateHud(); renderTasks();
 }
 function nagSomeone(){
   const pending=tasks.filter(t=>!t.done);
-  if(!pending.length){ gooseSay(pick(NAG.allDone)); return; }
+  if(!pending.length){ gooseSayAI('allDone', {}, pick(NAG.allDone)); return; }
   const t=pick(pending); nagLevel[t.text]=(nagLevel[t.text]||0)+1;
   const lv=Math.min(4,nagLevel[t.text]);
-  gooseSay(pick(NAG['l'+lv]).replace('{t}',t.text));
+  pushHistory('nagged about "'+t.text+'" (level '+lv+')');
+  gooseSayAI('nag', {task:t.text, nagLevel:lv}, pick(NAG['l'+lv]).replace('{t}',t.text));
 }
 function confetti(){
   for(let i=0;i<14;i++){const e=document.createElement('div');e.className='confetti';
@@ -216,9 +247,12 @@ $('go').onclick=()=>{
         .map(text=>({text,done:false}));
   if(!tasks.length){ tasks=[{text:'the thing you keep avoiding',done:false}]; }
   try{localStorage.setItem('goose-tasks',JSON.stringify(tasks.map(t=>t.text)));localStorage.setItem('goose-name',name);}catch(e){} // share tasks w/ screentime.html
-  show('s-chat'); $('thread').innerHTML=''; xp=0; streak=0; nagLevel={}; updateHud(); renderTasks();
-  gooseSay((name?name+'. ':'')+pick(NAG.intro));
-  setTimeout(()=>tasks.forEach((t,i)=>setTimeout(()=>gooseSay(pick(NAG.l1).replace('{t}',t.text)),400*(i+1))),500);
+  show('s-chat'); $('thread').innerHTML=''; xp=0; streak=0; nagLevel={}; history=[]; updateHud(); renderTasks();
+  gooseSayAI('intro', {}, (name?name+'. ':'')+pick(NAG.intro));
+  setTimeout(()=>tasks.forEach((t,i)=>setTimeout(()=>{
+    nagLevel[t.text]=1; pushHistory('set task "'+t.text+'"');
+    gooseSayAI('nag', {task:t.text, nagLevel:1}, pick(NAG.l1).replace('{t}',t.text));
+  },700*(i+1))),700);
 };
 $('skip').onclick=()=>{ gooseSay(pick(NAG.skip)); setTimeout(nagSomeone,500); };
 $('toCard').onclick=()=>{
@@ -272,6 +306,29 @@ if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').cat
     setIcon();
   });
 })();
+</script>
+
+<!-- Google Calendar connect (client-side, PUBLIC Client ID; see config.js / CALENDAR_SETUP.md) -->
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script src="/config.js"></script>
+<script src="/gcal.js"></script>
+<script>
+  (function(){
+    var btn=document.getElementById('calConnect'), st=document.getElementById('calStatus');
+    if(!btn) return;
+    function say(m){ st.textContent=m; }
+    btn.addEventListener('click',function(){
+      if(!window.GooseCal){ say('Calendar connector still loading — try again in a sec.'); return; }
+      if(!GooseCal.isConfigured()){ say('Calendar isn’t set up yet.'); return; }
+      say('Opening Google… approve the “unverified app” screen (Advanced → Continue) to let Goose in. 🪿');
+      GooseCal.connect().then(function(){
+        say('✅ Connected. Goose can see your calendar.');
+        return GooseCal.listToday();
+      }).then(function(items){
+        if(items){ say('✅ Goose sees '+items.length+' thing'+(items.length===1?'':'s')+' on your calendar today. Nowhere to hide. 🪿'); btn.textContent='🔄 Calendar connected'; }
+      }).catch(function(e){ say('✗ '+((e&&e.message)||'Could not connect.')); });
+    });
+  })();
 </script>
 </body>
 </html>
