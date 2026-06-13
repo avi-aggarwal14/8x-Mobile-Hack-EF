@@ -116,6 +116,8 @@
       <button class="btn" id="skip">⏩ Time skip</button>
       <button class="btn coral" id="toCard">Share card</button>
     </div>
+    <!-- hook → standalone mock Screen-Time dashboard (screentime.html) -->
+    <a href="screentime.html" style="display:block;text-align:center;margin-top:10px;font-family:'Baloo 2';font-weight:700;font-size:14px;color:var(--amber-d);text-decoration:none">📱 See what your phone has been up to →</a>
   </section>
 
   <!-- CARD -->
@@ -213,6 +215,7 @@ $('go').onclick=()=>{
   tasks=[...document.querySelectorAll('.t-in')].map(i=>i.value.trim()).filter(Boolean)
         .map(text=>({text,done:false}));
   if(!tasks.length){ tasks=[{text:'the thing you keep avoiding',done:false}]; }
+  try{localStorage.setItem('goose-tasks',JSON.stringify(tasks.map(t=>t.text)));localStorage.setItem('goose-name',name);}catch(e){} // share tasks w/ screentime.html
   show('s-chat'); $('thread').innerHTML=''; xp=0; streak=0; nagLevel={}; updateHud(); renderTasks();
   gooseSay((name?name+'. ':'')+pick(NAG.intro));
   setTimeout(()=>tasks.forEach((t,i)=>setTimeout(()=>gooseSay(pick(NAG.l1).replace('{t}',t.text)),400*(i+1))),500);
