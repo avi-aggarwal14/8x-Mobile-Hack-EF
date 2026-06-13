@@ -25,17 +25,16 @@
 
 **Shipped & live:**
 - **Landing page** (`/`) — email waitlist → **Google Apps Script → Google Sheet** (collecting signups now); rotating nag samples; PWA install.
-- **Interactive app** (`/app`) — name + top-3 tasks → a goose "chat" that nags with escalating intensity, done/ghost/skip, XP·levels·streak·confetti, and a **shareable Goose card** (html2canvas + Web Share). ⚠️ Nags are **canned strings — the Claude API is NOT wired in yet.**
+- **Interactive app** (`/app`) — name + top-3 tasks → a goose "chat" that nags with escalating intensity, done/ghost/skip, XP·levels·streak·confetti, and a **shareable Goose card** (html2canvas + Web Share). ✅ Nags now come from **Claude via `/api/nag`** (server-side; canned strings as offline fallback).
 - **PWA** — manifest, service worker, icon, install prompts, **browser-tab favicon** (SVG `icon.svg`, on both `/` and `/app`).
 - *(As-built note: vanilla HTML/JS static PWA, not the Next.js in §5 — fine for the window.)*
 
 **🟡 In progress:**
-- **Google Calendar API (two-way):** reads your real calendar/deadlines to nag you about them, **and** writes new tasks/reminders (with deadlines) back to your calendar to nag about later. = Goose's scheduling + awareness brain. — ✅ **client-side connector built + deployed** (GIS token model, read+write `calendar.events`, no backend/secret): `gcal.js` + `config.js` + a `/calendar.html` test page. ✅ **Client ID wired in + deployed** (Google project Goose/`goose-499311`, Testing mode) → **ready to test** at `goose-lockin.vercel.app/calendar.html` (connect → reads today's events + drops a test event). **Next:** fold into the main Goose flow.
+- **Google Calendar API (two-way):** reads your real calendar/deadlines to nag you about them, **and** writes new tasks/reminders (with deadlines) back to your calendar to nag about later. = Goose's scheduling + awareness brain. — ✅ **client-side connector built + deployed** (GIS token model, read+write `calendar.events`, no backend/secret): `gcal.js` + `config.js` + a `/calendar.html` test page. ✅ **Client ID wired in + deployed** (Google project Goose/`goose-499311`). ✅ **Connect Google Calendar button now on the landing page + the app start screen** (not just `/calendar.html`). 🔓 **Public:** OAuth app **published to Production** so *anyone* can connect — users click through Google's "unverified app" warning (Advanced → Continue), since full verification of the sensitive `calendar.events` scope isn't feasible today (`CALENDAR_SETUP.md` Part F). **Next:** fold calendar reads into Goose's nags.
 - **Nag delivery model:** **Calendar decides *when* · a chat app (Telegram/WhatsApp) *delivers* the nag.** (The Claude Goose engine + chat delivery is the open build.)
 - **Waitlist → email + phone** (phone capture being added; needed so Goose can actually text you).
-- **Claude API → live, personalized nags** (replacing the canned strings).
 
-**⚠️ Fix:** the share card / OG tags / Vercel project name all say `goose-8x.vercel.app`; the canonical public URL is **goose-lockin.vercel.app**. The share card *is* our growth loop — update the code refs so shares point at the live site.
+**✅ Resolved:** the share card + share text now use **goose-lockin.vercel.app** (the public URL). *(The Vercel project is still internally named `goose-8x`, but that's not user-facing.)*
 
 ---
 
