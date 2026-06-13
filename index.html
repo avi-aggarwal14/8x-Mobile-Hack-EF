@@ -147,9 +147,10 @@
   document.getElementById('more').onclick = function(){ i=(i+1)%nags.length; document.getElementById('nag').textContent = nags[i]; };
 
   // --- signup counter -----------------------------------------------------
-  // COUNT_BASE = fallback shown if the endpoint can't report a real count.
-  // Set this to the real signup number from the Google Sheet.
-  var COUNT_BASE = 2;
+  // COUNT_BASE = fallback shown ONLY if the endpoint can't report a real count.
+  // Kept at 0 so a failed fetch never shows a fake number — the real, live count
+  // comes from the Apps Script doGet (?action=count → {count:N}).
+  var COUNT_BASE = 0;
   var countEl = document.getElementById('counter');
   var numEl = document.getElementById('countNum');
   var liveCount = COUNT_BASE + (parseInt(localStorage.getItem('goose-local-signups'),10) || 0);
