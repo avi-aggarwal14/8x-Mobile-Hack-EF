@@ -119,8 +119,11 @@
       <button class="btn" id="skip">⏩ Time skip</button>
       <button class="btn coral" id="toCard">Share card</button>
     </div>
+    <!-- proof-or-it-didn't-happen: hidden camera/file input judged by Claude vision -->
+    <input type="file" id="proofInput" accept="image/*" capture="environment" style="display:none" />
     <!-- hook → standalone mock Screen-Time dashboard (screentime.html) -->
     <a href="screentime.html" style="display:block;text-align:center;margin-top:10px;font-family:'Baloo 2';font-weight:700;font-size:14px;color:var(--amber-d);text-decoration:none">📱 See what your phone has been up to →</a>
+    <a href="#" id="tattleLink" style="display:block;text-align:center;margin-top:8px;font-family:'Baloo 2';font-weight:700;font-size:14px;color:var(--coral);text-decoration:none">🚨 Sic Goose on a friend →</a>
   </section>
 
   <!-- CARD -->
@@ -209,16 +212,60 @@ function renderTasks(){
     d.querySelector('.t').textContent=t.text;
     c.appendChild(d);
   });
-  c.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>markDone(+b.dataset.d));
+  c.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>requestProof(+b.dataset.d));
   c.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>markGhost(+b.dataset.g));
 }
-function markDone(i){
+function markDone(i, opts){
+  opts=opts||{};
   if(tasks[i].done) return;
   tasks[i].done=true; xp+=50; streak++; confetti();
   const t=tasks[i].text; pushHistory('completed "'+t+'"');
-  gooseSayAI('done', {task:t}, pick(NAG.done).replace('{t}',t));
+  if(!opts.silent) gooseSayAI('done', {task:t}, pick(NAG.done).replace('{t}',t));
   if(tasks.every(x=>x.done)) gooseSayAI('allDone', {}, pick(NAG.allDone));
   updateHud(); renderTasks();
+}
+
+/* ---- Proof-or-it-didn't-happen: snap a photo, Claude vision judges it ---- */
+let proofIdx=-1;
+function requestProof(i){ proofIdx=i; const inp=$('proofInput'); inp.value=''; inp.click(); }
+function onProofPicked(file){
+  if(proofIdx<0 || !file) return;
+  const i=proofIdx; proofIdx=-1;
+  const reader=new FileReader();
+  reader.onload=()=>judgeProof(i, reader.result);
+  reader.readAsDataURL(file);
+}
+async function judgeProof(i, dataUrl){
+  const t=tasks[i].text;
+  const bub=addTyping(); bub.textContent='👀 Goose is inspecting the evidence…';
+  try{
+    const r=await fetch('/api/judge',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({task:t, image:dataUrl})});
+    if(r.status===503){ bub.remove(); markDone(i); return; } // no API key → don't block
+    if(r.ok){
+      const j=await r.json();
+      bub.classList.remove('typing'); bub.textContent=j.line||'';
+      if(j.pass){ markDone(i,{silent:true}); }
+      else { pushHistory('failed proof for "'+t+'"'); }
+      return;
+    }
+    throw new Error('bad');
+  }catch(e){ bub.remove(); markDone(i); } // API down → accept rather than break the demo
+}
+
+/* ---- Goose tattles to your friends (social accountability + growth loop) ---- */
+function tattle(){
+  const pending=tasks.filter(t=>!t.done);
+  const t=((pending[0]||tasks[0])||{}).text || 'their tasks';
+  const who=((typeof prompt==='function'?prompt("Who needs to know? (a friend's name)"):'')||'').trim() || 'Your friend';
+  const msg='🪿 GOOSE INTERVENTION 🪿\n\n'+who+' is dramatically avoiding "'+t+'" and their streak is in shambles. They need supervision.\n\nBecome the goose that haunts them: https://goose-lockin.vercel.app';
+  if(navigator.share){ navigator.share({text:msg}).catch(()=>tattleFallback(msg)); }
+  else tattleFallback(msg);
+  gooseSay(who+' has been notified. There is no hiding from the flock now. 🪿');
+}
+function tattleFallback(msg){
+  try{ navigator.clipboard.writeText(msg); }catch(e){}
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 function markGhost(i){
   if(tasks[i].done) return;
@@ -255,6 +302,8 @@ $('go').onclick=()=>{
   },700*(i+1))),700);
 };
 $('skip').onclick=()=>{ gooseSay(pick(NAG.skip)); setTimeout(nagSomeone,500); };
+$('proofInput').addEventListener('change', e=>onProofPicked(e.target.files[0]));
+$('tattleLink').onclick=e=>{ e.preventDefault(); tattle(); };
 $('toCard').onclick=()=>{
   const done=tasks.filter(t=>t.done).length;
   $('cardName').textContent=(name?name+' ':'')+'survived Goose today';
