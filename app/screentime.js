@@ -171,7 +171,7 @@ function render(day) {
     ring.style.strokeDashoffset = offset;
   }));
 
-  $('pickups').textContent = `${day.pickups} pickups`;
+  $('pickups').textContent = day.pickups != null ? `${day.pickups} pickups` : (day.real ? 'from your screenshot' : '');
 
   // app list
   const maxMins = day.apps[0].mins;
@@ -212,7 +212,58 @@ function render(day) {
   roastEl.classList.remove('pop'); void roastEl.offsetWidth; roastEl.classList.add('pop');
 }
 
+/* ---- REAL data: read the user's Screen Time screenshot via vision ----
+   A PWA can't read the OS directly, so the user screenshots Settings →
+   Screen Time; /api/screentime (Claude vision) extracts the real per-app
+   minutes. We map those onto the same render shape (matching known apps to
+   the CATALOG for colour/glyph; unknown apps get a neutral default). */
+function catalogMatch(name) {
+  const n = (name || '').toLowerCase();
+  return CATALOG.find(c => n.includes(c.name.toLowerCase()) || c.name.toLowerCase().includes(n));
+}
+function mapRealDay(data) {
+  const apps = (data.apps || [])
+    .map(a => {
+      const c = catalogMatch(a.name) || { glyph: '📱', color: '#7A786F', band: 'any' };
+      return { name: a.name, glyph: c.glyph, color: c.color, band: c.band, mins: a.minutes };
+    })
+    .filter(a => a.mins > 0)
+    .sort((x, y) => y.mins - x.mins);
+  const totalMins = data.total_minutes || apps.reduce((s, a) => s + a.mins, 0);
+  return { apps, totalMins, pickups: (data.pickups != null ? data.pickups : null), real: true };
+}
+function setStatus(msg) { const e = $('importStatus'); if (e) e.textContent = msg || ''; }
+function markReal() {
+  const tag = document.querySelector('.demo-tag');
+  if (tag) { tag.textContent = '🪿 your real data'; tag.title = 'Read from your Screen Time screenshot'; }
+  const foot = $('foot');
+  if (foot) foot.innerHTML = 'Read live from your Screen Time screenshot by Goose’s eyes (Claude vision). 🪿';
+}
+async function importScreenshot(dataUrl) {
+  setStatus('👀 Goose is reading your screenshot…');
+  try {
+    const r = await fetch('/api/screentime', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: dataUrl })
+    });
+    if (r.status === 503) { setStatus('Goose’s eyes aren’t set up (no API key). Showing demo data.'); return; }
+    if (!r.ok) { setStatus('Couldn’t read that one. Try a clearer Screen Time screenshot.'); return; }
+    const data = await r.json();
+    if (!data.apps || !data.apps.length) { setStatus('No usage found. Screenshot Settings → Screen Time and try again.'); return; }
+    render(mapRealDay(data));
+    markReal();
+    setStatus('Got it — that’s YOUR real screen time. No hiding now. 🪿');
+  } catch (e) { setStatus('Something went wrong reading it. Showing demo data.'); }
+}
+
 /* ---- Wire up -------------------------------------------------------- */
+$('importBtn').onclick = () => { const i = $('stInput'); i.value = ''; i.click(); };
+$('stInput').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => importScreenshot(reader.result);
+  reader.readAsDataURL(f);
+});
 $('reroll').onclick = () => render(rollUsage());
 render(rollUsage());
 

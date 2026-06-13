@@ -132,9 +132,12 @@
   <div class="apps" id="apps"></div>
 
   <div class="controls">
-    <button class="btn coral" id="reroll">🔄 New day, fresh shame</button>
+    <button class="btn" id="importBtn">📷 Import my real Screen Time</button>
+    <input type="file" id="stInput" accept="image/*" style="display:none" />
+    <p id="importStatus" style="text-align:center;font-weight:700;font-size:12.5px;color:var(--muted);margin:8px 0 0;line-height:1.45"></p>
+    <button class="btn coral" id="reroll" style="margin-top:10px">🔄 New day, fresh shame</button>
   </div>
-  <p class="foot">Screen Time data is simulated for the demo. Goose can't read your OS… <i>yet.</i> 🪿</p>
+  <p class="foot" id="foot">📷 Tap import, screenshot your <b>Settings → Screen Time</b>, and Goose reads your <i>real</i> numbers. Or use the demo roll. 🪿</p>
 </div>
 
 <script src="screentime.js"></script>
