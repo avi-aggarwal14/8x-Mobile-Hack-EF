@@ -1,0 +1,12 @@
+{
+  "name": "Goose — your accountability goose",
+  "short_name": "Goose",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FBF7EF",
+  "theme_color": "#F2A03D",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,4 @@
+# Keep planning docs + dev copies out of the public deploy
+*.md
+landing/
+.claude/

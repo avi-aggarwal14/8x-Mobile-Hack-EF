@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>Goose</title>
+<meta name="theme-color" content="#F2A03D" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="apple-touch-icon" href="/icon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --bg:#FBF7EF; --card:#FFFFFF; --ink:#2A2A28; --muted:#7A786F;
+    --amber:#F2A03D; --amber-d:#C0721F; --coral:#E2603C; --green:#2FA86B; --disc:#FDEBCF;
+    --bubble:#EFEADE; --shadow:0 8px 0 rgba(42,42,40,.10);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg); color:var(--ink); font-family:Nunito,system-ui,sans-serif; overflow:hidden}
+  .app{max-width:480px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;position:relative}
+  h1,h2,h3,.fun{font-family:"Baloo 2",system-ui,sans-serif}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;padding:20px;overflow-y:auto;transition:opacity .25s}
+  .hide{opacity:0;pointer-events:none}
+  /* buttons */
+  .btn{font-family:"Baloo 2";font-weight:700;font-size:19px;border:none;border-radius:18px;padding:15px 18px;
+       background:var(--amber);color:#fff;box-shadow:var(--shadow);cursor:pointer;width:100%;transition:transform .06s}
+  .btn:active{transform:translateY(4px);box-shadow:0 4px 0 rgba(42,42,40,.10)}
+  .btn.coral{background:var(--coral)} .btn.green{background:var(--green)} .btn.ghost{background:#B9B5AA}
+  /* START screen */
+  .goose-hero{width:140px;margin:8px auto 2px;display:block}
+  .start h1{font-size:34px;text-align:center;margin:6px 0 4px;line-height:1.05}
+  .start .sub{text-align:center;color:var(--muted);font-weight:700;margin:0 0 18px}
+  .field{margin-bottom:12px}
+  .field label{font-family:"Baloo 2";font-weight:700;font-size:14px;color:var(--amber-d);display:block;margin:0 0 5px 4px}
+  .inp{width:100%;height:52px;padding:0 16px;font-size:16px;font-family:Nunito;font-weight:700;color:var(--ink);
+       background:var(--card);border:2.5px solid #ECE6D8;border-radius:16px;outline:none}
+  .inp:focus{border-color:var(--amber)}
+  /* CHAT screen */
+  .hud{background:var(--card);border-radius:20px;padding:12px 14px;box-shadow:var(--shadow);margin-bottom:12px;flex:none}
+  .hud-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .lvl{font-family:"Baloo 2";font-weight:800;font-size:16px}
+  .streak{font-family:"Baloo 2";font-weight:800;font-size:16px;color:var(--coral)}
+  .xpbar{height:12px;background:#ECE6D8;border-radius:8px;overflow:hidden}
+  .xpfill{height:100%;width:0;background:var(--amber);border-radius:8px;transition:width .5s}
+  .thread{flex:1;overflow-y:auto;padding:4px 2px 8px;display:flex;flex-direction:column;gap:10px}
+  .row{display:flex;align-items:flex-end;gap:8px;max-width:88%}
+  .row.me{align-self:flex-end;flex-direction:row-reverse}
+  .av{width:30px;height:30px;flex:none;border-radius:50%;background:var(--disc);display:flex;align-items:center;justify-content:center}
+  .bub{background:var(--bubble);color:var(--ink);padding:11px 14px;border-radius:20px;font-size:15.5px;font-weight:600;line-height:1.35;border-bottom-left-radius:6px}
+  .row.me .bub{background:var(--amber);color:#fff;border-bottom-left-radius:20px;border-bottom-right-radius:6px}
+  .tasks{flex:none;padding-top:10px;display:flex;flex-direction:column;gap:8px}
+  .task{display:flex;align-items:center;gap:8px;background:var(--card);border-radius:16px;padding:9px 10px 9px 14px;box-shadow:var(--shadow)}
+  .task.done{opacity:.55}
+  .task .t{flex:1;font-weight:800;font-size:15px}
+  .task.done .t{text-decoration:line-through}
+  .mini{font-family:"Baloo 2";font-weight:700;font-size:14px;border:none;border-radius:12px;padding:9px 12px;color:#fff;cursor:pointer}
+  .mini.d{background:var(--green)} .mini.g{background:#B9B5AA}
+  .barbtns{flex:none;display:flex;gap:8px;padding-top:10px}
+  .barbtns .btn{font-size:16px;padding:13px}
+  /* CARD screen */
+  .card-wrap{flex:1;display:flex;flex-direction:column;justify-content:center}
+  #card{background:var(--amber);border-radius:26px;padding:24px;color:#fff;text-align:center}
+  #card .goosec{width:96px;margin:0 auto 6px;display:block}
+  #card h2{font-size:26px;margin:4px 0}
+  #card .big{font-family:"Baloo 2";font-weight:800;font-size:46px;line-height:1;margin:8px 0}
+  #card .nagq{background:rgba(255,255,255,.18);border-radius:16px;padding:12px;font-weight:700;font-size:15px;margin:12px 0}
+  #card .url{font-weight:800;font-size:14px;opacity:.9;margin-top:8px}
+  .confetti{position:absolute;top:-10px;font-size:22px;animation:fall 1.1s ease-in forwards;pointer-events:none}
+  @keyframes fall{to{transform:translateY(105dvh) rotate(360deg);opacity:0}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- START -->
+  <section class="screen start" id="s-start">
+    <svg class="goose-hero" viewBox="0 0 220 190" aria-label="Goose"><circle cx="110" cy="98" r="80" fill="#FDEBCF"/><path d="M40 96 C55 72 78 64 100 66 C120 50 138 40 152 40 Q175 40 196 52 Q180 58 166 60 C168 78 150 92 140 104 C134 120 120 140 96 148 C70 154 50 140 44 120 C42 110 40 102 40 96 Z" fill="#fff" stroke="#57564F" stroke-width="2.5" stroke-linejoin="round"/><path d="M88 92 C104 100 116 116 106 132" fill="none" stroke="#57564F" stroke-width="2" stroke-linecap="round"/><path d="M182 46 L201 52 L182 59 Z" fill="#F2A03D" stroke="#C0721F" stroke-width="1"/><circle cx="158" cy="50" r="3.6" fill="#2A2A28"/><path d="M149 41 L163 44" stroke="#2A2A28" stroke-width="2" stroke-linecap="round"/></svg>
+    <h1>Goose</h1>
+    <p class="sub">Tell me what you're avoiding. I'll handle the rest. 🪿</p>
+    <div class="field"><label>your name</label><input class="inp" id="name" placeholder="e.g. Avi" /></div>
+    <div class="field"><label>task 1 — the big one</label><input class="inp t-in" placeholder="Ship the landing page" /></div>
+    <div class="field"><label>task 2</label><input class="inp t-in" placeholder="Email the 3 leads" /></div>
+    <div class="field"><label>task 3</label><input class="inp t-in" placeholder="Go to the gym" /></div>
+    <div style="height:8px"></div>
+    <button class="btn coral" id="go">Sic the goose on me →</button>
+  </section>
+
+  <!-- CHAT -->
+  <section class="screen hide" id="s-chat">
+    <div class="hud">
+      <div class="hud-top">
+        <span class="lvl">🪿 Lvl <span id="lvl">1</span></span>
+        <span class="streak">🔥 <span id="streak">0</span> streak</span>
+      </div>
+      <div class="xpbar"><div class="xpfill" id="xp"></div></div>
+    </div>
+    <div class="thread" id="thread"></div>
+    <div class="tasks" id="taskList"></div>
+    <div class="barbtns">
+      <button class="btn" id="skip">⏩ Time skip</button>
+      <button class="btn coral" id="toCard">Share card</button>
+    </div>
+  </section>
+
+  <!-- CARD -->
+  <section class="screen hide" id="s-card">
+    <div class="card-wrap">
+      <div id="card">
+        <svg class="goosec" viewBox="0 0 220 190" aria-hidden="true"><circle cx="110" cy="98" r="80" fill="rgba(255,255,255,.22)"/><path d="M40 96 C55 72 78 64 100 66 C120 50 138 40 152 40 Q175 40 196 52 Q180 58 166 60 C168 78 150 92 140 104 C134 120 120 140 96 148 C70 154 50 140 44 120 C42 110 40 102 40 96 Z" fill="#fff" stroke="#C0721F" stroke-width="2.5" stroke-linejoin="round"/><path d="M182 46 L201 52 L182 59 Z" fill="#C0721F"/><circle cx="158" cy="50" r="3.6" fill="#2A2A28"/></svg>
+        <h2 id="cardName">I survived Goose today</h2>
+        <div class="big"><span id="cardDone">0</span>/<span id="cardTotal">3</span> done</div>
+        <div class="nagq" id="cardNag">"Bold of you to ignore a goose."</div>
+        <div class="url">goose-8x.vercel.app</div>
+      </div>
+      <div style="height:14px"></div>
+      <button class="btn green" id="share">Share my Goose card</button>
+      <div style="height:8px"></div>
+      <button class="btn ghost" id="back">← back to Goose</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const NAG = {
+  intro: [
+    "Oh, NOW you want accountability. Fine. Let's see what you 'forgot' today.",
+    "Three tasks. I've heard promises before. The honking starts now. 🪿",
+    "You summoned a goose for help. Tragic. Let's go."
+  ],
+  l1: ["{t} — it won't do itself. I'm watching. 🪿","Gentle nudge about {t}. Emphasis on 'gentle'. For now."],
+  l2: ["Still no {t}? You unlocked your phone 14 times but not for THIS?","{t} is collecting dust. So is your potential. HONK."],
+  l3: ["{t} STILL isn't done. I'm embarrassed for both of us.","Imagine telling a goose you'd do {t} and then just... not. Bold."],
+  l4: ["I told the other geese about {t}. They're disappointed too. 🪿🪿🪿","{t}. NOW. I will follow you into your dreams. Not joking."],
+  done: ["...you actually did it. Shocked. Proud. Tell no one I said that.","{t} DONE. The streak lives. We honk in victory. 🪿","Look at you. A functioning adult. Briefly."],
+  ghost:["Ghosting {t}? Cute. Your streak just felt that.","Marked ghosted. The shame is logged. Forever.","{t} abandoned. I'm adding it to The List."],
+  skip: ["Time's moving. Your tasks aren't. Pick one.","I waited. You scrolled. Classic. Do something."],
+  allDone:["ALL of them?? Who ARE you. I'm almost out of insults. Almost.","Clean sweep. The geese are honking your name. 🪿🔥"]
+};
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const $ = id => document.getElementById(id);
+let tasks=[], xp=0, streak=0, nagLevel={}, name="";
+
+function show(id){['s-start','s-chat','s-card'].forEach(s=>$(s).classList.toggle('hide',s!==id));}
+function addBub(text, me){
+  const row=document.createElement('div'); row.className='row'+(me?' me':'');
+  row.innerHTML = (me?'':'<div class="av">🪿</div>')+'<div class="bub"></div>';
+  row.querySelector('.bub').textContent=text;
+  $('thread').appendChild(row); $('thread').scrollTop=$('thread').scrollHeight;
+}
+function gooseSay(text){ addBub(text,false); }
+function updateHud(){
+  $('xp').style.width=Math.min(100,(xp%100))+'%';
+  $('lvl').textContent=Math.floor(xp/100)+1;
+  $('streak').textContent=streak;
+}
+function renderTasks(){
+  const c=$('taskList'); c.innerHTML='';
+  tasks.forEach((t,i)=>{
+    const d=document.createElement('div'); d.className='task'+(t.done?' done':'');
+    d.innerHTML='<span class="t"></span>'+(t.done?'<span class="mini d">✓ done</span>':
+      '<button class="mini d" data-d="'+i+'">✓ done</button><button class="mini g" data-g="'+i+'">👻 ghost</button>');
+    d.querySelector('.t').textContent=t.text;
+    c.appendChild(d);
+  });
+  c.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>markDone(+b.dataset.d));
+  c.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>markGhost(+b.dataset.g));
+}
+function markDone(i){
+  if(tasks[i].done) return;
+  tasks[i].done=true; xp+=50; streak++; confetti();
+  gooseSay(pick(NAG.done).replace('{t}',tasks[i].text));
+  if(tasks.every(t=>t.done)) gooseSay(pick(NAG.allDone));
+  updateHud(); renderTasks();
+}
+function markGhost(i){
+  if(tasks[i].done) return;
+  streak=0;
+  gooseSay(pick(NAG.ghost).replace('{t}',tasks[i].text));
+  updateHud(); renderTasks();
+}
+function nagSomeone(){
+  const pending=tasks.filter(t=>!t.done);
+  if(!pending.length){ gooseSay(pick(NAG.allDone)); return; }
+  const t=pick(pending); nagLevel[t.text]=(nagLevel[t.text]||0)+1;
+  const lv=Math.min(4,nagLevel[t.text]);
+  gooseSay(pick(NAG['l'+lv]).replace('{t}',t.text));
+}
+function confetti(){
+  for(let i=0;i<14;i++){const e=document.createElement('div');e.className='confetti';
+    e.textContent=pick(['🪿','🔥','⭐','🎉']);e.style.left=(Math.random()*100)+'%';
+    e.style.animationDelay=(Math.random()*.3)+'s';document.body.appendChild(e);setTimeout(()=>e.remove(),1500);}
+}
+
+$('go').onclick=()=>{
+  name=$('name').value.trim();
+  tasks=[...document.querySelectorAll('.t-in')].map(i=>i.value.trim()).filter(Boolean)
+        .map(text=>({text,done:false}));
+  if(!tasks.length){ tasks=[{text:'the thing you keep avoiding',done:false}]; }
+  show('s-chat'); $('thread').innerHTML=''; xp=0; streak=0; nagLevel={}; updateHud(); renderTasks();
+  gooseSay((name?name+'. ':'')+pick(NAG.intro));
+  setTimeout(()=>tasks.forEach((t,i)=>setTimeout(()=>gooseSay(pick(NAG.l1).replace('{t}',t.text)),400*(i+1))),500);
+};
+$('skip').onclick=()=>{ gooseSay(pick(NAG.skip)); setTimeout(nagSomeone,500); };
+$('toCard').onclick=()=>{
+  const done=tasks.filter(t=>t.done).length;
+  $('cardName').textContent=(name?name+' ':'')+'survived Goose today';
+  $('cardDone').textContent=done; $('cardTotal').textContent=tasks.length;
+  $('cardNag').textContent='"'+pick(done===tasks.length?NAG.allDone:NAG.l3).replace('{t}',pick(tasks).text)+'"';
+  show('s-card');
+};
+$('back').onclick=()=>show('s-chat');
+$('share').onclick=async()=>{
+  const node=$('card');
+  try{
+    const canvas=await html2canvas(node,{backgroundColor:null,scale:2});
+    canvas.toBlob(async blob=>{
+      const file=new File([blob],'goose-card.png',{type:'image/png'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],text:'I survived Goose today 🪿 goose-8x.vercel.app'});
+      }else{
+        const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='goose-card.png';a.click();
+      }
+    });
+  }catch(e){
+    if(navigator.share) navigator.share({text:'I survived Goose today 🪿 goose-8x.vercel.app'});
+  }
+};
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
+</script>
+</body>
+</html>
